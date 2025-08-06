@@ -1,5 +1,5 @@
-const nodemailer = require("nodemailer");
-const dotenv = require("dotenv");
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -97,4 +97,4 @@ async function sendEmail(recipients, subject, body) {
   };
 }
 
-module.exports = sendEmail;
+export default sendEmail;

@@ -1,9 +1,12 @@
-const path = require("path");
-const express = require("express");
-const dotenv = require("dotenv").config();
-const cors = require("cors");
-const connectDB = require("./config/db");
-const { errorHandler } = require("./middleware/errorMiddleware");
+import path from "path";
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import connectDB from "./config/db.js";
+import { errorHandler } from "./middleware/errorMiddleware.js";
+import router from "./routes/dynamicModelRoutes.js";
+
+dotenv.config();
 
 const port = process.env.PORT || 5000;
 const app = express();
@@ -16,17 +19,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 
+// Basic Hello World route
+app.get('/', (req, res) => {
+  res.json({ message: 'Hello World! Welcome to the API' });
+});
+
 // API Routes
-app.use("/api/users", require("./routes/userRoutes"));
-
-// Serve frontend (React) in production
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "frontend", "build")));
-
-  app.get("*", (req, res) =>
-    res.sendFile(path.join(__dirname, "frontend", "build", "index.html"))
-  );
-}
+app.use('/api', router);
 
 // Custom error handler middleware
 app.use(errorHandler);

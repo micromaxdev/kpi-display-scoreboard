@@ -1,5 +1,7 @@
-const MongoClient = require('mongodb').MongoClient;
-const dotenv = require('dotenv').config()
+import { MongoClient } from 'mongodb';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const Join = () => {
 
@@ -58,4 +60,4 @@ const Join = () => {
   
 }
   
-module.exports = Join
+export default Join;
