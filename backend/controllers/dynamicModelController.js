@@ -1,83 +1,42 @@
 import getDynamicModel from '../models/dynamicModel.js';
-import { normalizeDateFormat,isLikelyDate } from '../services/dateService.js';
+import mongoose from 'mongoose';
+import { 
+  buildQuery, 
+  buildSortOptions, 
+  buildPaginationInfo, 
+  extractQueryParams 
+} from '../services/queryService.js';
+
 // Main function to retrieve collection data with pagination and indexing
-const getCollectionData = async (req, res) => {
+export const getCollectionData = async (req, res) => {
   try {
     const { collectionName } = req.params;
-    const { 
-      page = 1, 
-      limit = 50, // Default to 50 for better performance with large datasets Limit = 0 means no limit a.k.a all data
-      sortBy = '_id', // Default sort by _id for consistent ordering
-      sortOrder = 'desc',
-      ...filters
-    } = req.query;
+    const { page, limit, sortBy, sortOrder, filters } = extractQueryParams(req.query);
 
     const Model = getDynamicModel(collectionName);
     
-    // Build query from filters with support for JSON-style MongoDB operators
-    const query = {};
-    // Object.keys(filters).forEach(key => {
-    // const value = filters[key];
-    // if (value !== undefined && value !== '') {
-    //     try {
-    //     // Try parsing as JSON (for complex filters like $gt, $in, etc.)
-    //     query[key] = JSON.parse(value);
-    //     } catch (e) {
-    //     // Fallback to string match
-    //     query[key] = value;
-    //     }
-    // }
-    // });
-
-    Object.keys(filters).forEach(key => {
-    let value = filters[key];
-    if (value !== undefined && value !== '') {
-      try {
-        const parsed = JSON.parse(value);
-
-        // e.g. dueDate={"$gte":"06/08/25", "$lte":"10/08/25"}
-        if (typeof parsed === 'object' && parsed !== null) {
-          Object.keys(parsed).forEach(op => {
-            if (typeof parsed[op] === 'string' && isLikelyDate(parsed[op])) {
-              parsed[op] = normalizeDateFormat(parsed[op]);
-            }
-          });
-        }
-
-        query[key] = parsed;
-      } catch (e) {
-        // Simple value like dueDate=06/08/25
-        query[key] = isLikelyDate(value) ? normalizeDateFormat(value) : value;
-      }
-    }
-    });
-
-    // Optimize sort options for performance
-    const sortOptions = {};
-    sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    // Build query and sort options using service functions
+    const query = buildQuery(filters);
+    const sortOptions = buildSortOptions(sortBy, sortOrder);
 
     // Use lean() for better performance with large datasets
     const data = await Model.find(query)
       .lean() // Returns plain JavaScript objects instead of Mongoose documents
       .sort(sortOptions)
-      .limit(parseInt(limit))
-      .skip((parseInt(page) - 1) * parseInt(limit))
+      .limit(limit)
+      .skip((page - 1) * limit)
       .exec();
 
     // Get total count for pagination
     const total = await Model.countDocuments(query);
 
+    // Build pagination info
+    const pagination = buildPaginationInfo(page, limit, total);
+
     res.json({
       success: true,
       data,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / parseInt(limit)),
-        totalDocuments: total,
-        limit: parseInt(limit),
-        hasNextPage: parseInt(page) < Math.ceil(total / parseInt(limit)),
-        hasPrevPage: parseInt(page) > 1
-      },
+      pagination,
       collectionName
     });
 
@@ -90,7 +49,21 @@ const getCollectionData = async (req, res) => {
     });
   }
 };
-
-export {
-  getCollectionData
+// Function to get list of collections in the database
+export const getCollectionsList = async (req, res) => {
+  try {
+    const collections = await mongoose.connection.db.listCollections().toArray();
+    const collectionNames = collections.map(col => col.name);
+    res.json({
+      success: true,
+      collections: collectionNames
+    });
+  } catch (error) {
+    console.error('Error retrieving collections list:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error retrieving collections list',
+      error: error.message
+    });
+  }
 };

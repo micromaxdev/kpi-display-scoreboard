@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
-import {getCollectionData} from '../controllers/dynamicModelController.js'
+import {getCollectionData,getCollectionsList} from '../controllers/dynamicModelController.js'
 
-router.get('/:collectionName', getCollectionData)
-
+router.get('/find/:collectionName', getCollectionData)
+router.get('/list', getCollectionsList)
 export default router
