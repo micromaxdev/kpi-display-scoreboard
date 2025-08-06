@@ -1,5 +1,5 @@
 import getDynamicModel from '../models/dynamicModel.js';
-
+import { normalizeDateFormat,isLikelyDate } from '../services/dateService.js';
 // Main function to retrieve collection data with pagination and indexing
 const getCollectionData = async (req, res) => {
   try {
@@ -16,16 +16,39 @@ const getCollectionData = async (req, res) => {
     
     // Build query from filters with support for JSON-style MongoDB operators
     const query = {};
+    // Object.keys(filters).forEach(key => {
+    // const value = filters[key];
+    // if (value !== undefined && value !== '') {
+    //     try {
+    //     // Try parsing as JSON (for complex filters like $gt, $in, etc.)
+    //     query[key] = JSON.parse(value);
+    //     } catch (e) {
+    //     // Fallback to string match
+    //     query[key] = value;
+    //     }
+    // }
+    // });
+
     Object.keys(filters).forEach(key => {
-    const value = filters[key];
+    let value = filters[key];
     if (value !== undefined && value !== '') {
-        try {
-        // Try parsing as JSON (for complex filters like $gt, $in, etc.)
-        query[key] = JSON.parse(value);
-        } catch (e) {
-        // Fallback to string match
-        query[key] = value;
+      try {
+        const parsed = JSON.parse(value);
+
+        // e.g. dueDate={"$gte":"06/08/25", "$lte":"10/08/25"}
+        if (typeof parsed === 'object' && parsed !== null) {
+          Object.keys(parsed).forEach(op => {
+            if (typeof parsed[op] === 'string' && isLikelyDate(parsed[op])) {
+              parsed[op] = normalizeDateFormat(parsed[op]);
+            }
+          });
         }
+
+        query[key] = parsed;
+      } catch (e) {
+        // Simple value like dueDate=06/08/25
+        query[key] = isLikelyDate(value) ? normalizeDateFormat(value) : value;
+      }
     }
     });
 
