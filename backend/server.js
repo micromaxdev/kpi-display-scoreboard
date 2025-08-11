@@ -5,7 +5,7 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
 import router from "./routes/dynamicModelRoutes.js";
-
+import kpiRouter from "./routes/kpiRoutes.js";
 dotenv.config();
 
 const port = process.env.PORT || 5000;
@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
 
 // API Routes
 app.use('/api', router);
-
+app.use('/kpi-api', kpiRouter);
 // Custom error handler middleware
 app.use(errorHandler);
 

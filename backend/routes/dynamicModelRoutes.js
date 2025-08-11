@@ -1,7 +1,10 @@
 import express from 'express';
+import {getPaginatedData,getCollectionsList,getFieldsOfCollection} from '../controllers/dynamicModelController.js'
 const router = express.Router();
-import {getCollectionData,getCollectionsList} from '../controllers/dynamicModelController.js'
 
-router.get('/find/:collectionName', getCollectionData)
-router.get('/list', getCollectionsList)
+
+router.get('/find/:collectionName', getPaginatedData) 
+router.get('/collectionList', getCollectionsList)
+router.get('/collectionFields/:collectionName', getFieldsOfCollection)
+
 export default router

@@ -1,4 +1,4 @@
-import { normalizeDateFormat, isLikelyDate } from './dateService.js';
+import { normalizeDateFormat, isLikelyDate } from '../utils/dateUtils.js';
 
 /**
  * Builds a MongoDB query object from request filters

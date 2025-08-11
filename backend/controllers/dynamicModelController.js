@@ -1,43 +1,40 @@
-import getDynamicModel from '../models/dynamicModel.js';
-import mongoose from 'mongoose';
 import { 
   buildQuery, 
   buildSortOptions, 
-  buildPaginationInfo, 
   extractQueryParams 
 } from '../services/queryService.js';
+import {
+  getPaginatedDataFromCollection,
+  getCollectionFields,
+  getListOfCollections
+} from '../services/dataService.js';
+
 
 // Main function to retrieve collection data with pagination and indexing
-export const getCollectionData = async (req, res) => {
+export const getPaginatedData = async (req, res) => {
   try {
     const { collectionName } = req.params;
     const { page, limit, sortBy, sortOrder, filters } = extractQueryParams(req.query);
 
-    const Model = getDynamicModel(collectionName);
-    
     // Build query and sort options using service functions
     const query = buildQuery(filters);
     const sortOptions = buildSortOptions(sortBy, sortOrder);
 
-    // Use lean() for better performance with large datasets
-    const data = await Model.find(query)
-      .lean() // Returns plain JavaScript objects instead of Mongoose documents
-      .sort(sortOptions)
-      .limit(limit)
-      .skip((page - 1) * limit)
-      .exec();
+    // Use the dataService to get paginated data
+    const result = await getPaginatedDataFromCollection(
+      collectionName,
+      query,
+      sortOptions,
+      page,
+      limit
+    );
 
-    // Get total count for pagination
-    const total = await Model.countDocuments(query);
-
-    // Build pagination info
-    const pagination = buildPaginationInfo(page, limit, total);
-
+    // Transform the response to match the original format
     res.json({
-      success: true,
-      data,
-      pagination,
-      collectionName
+      success: result.success,
+      data: result.data,
+      pagination: result.pagination,
+      collectionName: result.collection
     });
 
   } catch (error) {
@@ -49,14 +46,15 @@ export const getCollectionData = async (req, res) => {
     });
   }
 };
+
 // Function to get list of collections in the database
 export const getCollectionsList = async (req, res) => {
   try {
-    const collections = await mongoose.connection.db.listCollections().toArray();
-    const collectionNames = collections.map(col => col.name);
+    const collections = await getListOfCollections();
     res.json({
-      success: true,
-      collections: collectionNames
+      success: collections.success,
+      collections: collections.collectionsName,
+      totalCollections: collections.totalCollections
     });
   } catch (error) {
     console.error('Error retrieving collections list:', error);
@@ -67,3 +65,32 @@ export const getCollectionsList = async (req, res) => {
     });
   }
 };
+
+// Function to get fields of a specific collection
+export const getFieldsOfCollection = async (req, res) => {
+  try {
+    const { collectionName } = req.params;
+    const result = await getCollectionFields(collectionName);
+
+    if (!result || !result.data || result.data.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No fields found for the specified collection',
+        collectionName
+      });
+    }
+    res.json({
+      success: result.success,
+      fields: result.data,
+      collectionName: result.collection
+    });
+
+  } catch (error) {
+    console.error('Error retrieving fields of collection:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error retrieving fields',
+      error: error.message
+    });
+  }
+}
