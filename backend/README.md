@@ -50,12 +50,15 @@ A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB co
    Create a `.env` file in the root directory:
    ```env
    # Database Configuration
-   MONGO_URI=mongodb://localhost:27017/kpi_scoreboard
-   
+   MONGO_URI=your-mongodb-uri
+
    # Server Configuration
    PORT=5000
    NODE_ENV=development
-   
+
+   # JWT Secret for authentication
+   JWT_SECRET=your_jwt_secret
+
    # Optional: Email Configuration (if using email features)
    EMAIL_HOST=smtp.gmail.com
    EMAIL_PORT=587
@@ -67,7 +70,7 @@ A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB co
    ```bash
    # Development mode (with auto-reload)
    yarn dev
-   
+
    # Production mode
    yarn start
    ```
@@ -180,6 +183,48 @@ GET /api/collectionFields/:collectionName
     "updatedAt"
   ],
   "collectionName": "tasks"
+}
+```
+
+#### 4. Analyze KPI Data
+```http
+POST /kpi-api/analyze
+```
+
+**Description**: Analyze a collection for KPI RAG (Red-Amber-Green) categorization.
+
+**Request Body**:
+```json
+{
+  "collectionName": "tasks",
+  "field": "dueDate",
+  "greenThreshold": 7,
+  "amberThreshold": 14,
+  "direction": "lower"
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "collection": "tasks",
+  "thresholds": {
+    "green": 7,
+    "amber": 14,
+    "direction": "lower"
+  },
+  "countsByCategory": {
+    "green": 10,
+    "amber": 5,
+    "red": 2,
+    "total": 17
+  },
+  "topItems": {
+    "green": [...],
+    "amber": [...],
+    "red": [...]
+  }
 }
 ```
 
@@ -424,6 +469,7 @@ yarn outdated
 | `MONGO_URI` | MongoDB connection string | - | ✅ |
 | `PORT` | Server port | 5000 | ❌ |
 | `NODE_ENV` | Environment mode | development | ❌ |
+| `JWT_SECRET` | Secret key for JWT authentication | - | ✅ |
 | `EMAIL_HOST` | SMTP server host | - | ❌ |
 | `EMAIL_PORT` | SMTP server port | 587 | ❌ |
 | `EMAIL_USER` | Email username | - | ❌ |
