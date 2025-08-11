@@ -63,7 +63,6 @@ export function sortCategoryItems(items, category, direction, field = '') {
                 // For amounts: Show highest values first (highest cost = worst)
                 return items.sort((a, b) => b.comparisonValue - a.comparisonValue); // DESCENDING
             }
-            return items.sort((a, b) => a.comparisonValue - b.comparisonValue); // ASCENDING
         } else {
             // For "higher" direction
             if (isDateField) {
