@@ -1,102 +1,127 @@
-# Dynamic Collection API
+# KPI Display Scoreboard - Backend API
 
-A flexible Node.js/Express API that provides dynamic access to MongoDB collections with advanced querying, pagination, and filtering capabilities.
+A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB collection access with advanced querying, pagination, and filtering capabilities. Built specifically for KPI dashboards and data visualization applications.
 
-## Features
+## 🚀 Features
 
-- **Dynamic Collection Access**: Query any MongoDB collection without predefined schemas
-- **Advanced Filtering**: Support for MongoDB operators and complex queries
-- **Pagination**: Built-in pagination with customizable page size
-- **Sorting**: Flexible sorting by any field with ascending/descending order
-- **Performance Optimized**: Uses lean queries and caching for better performance
-- **RESTful API**: Clean REST endpoints for data retrieval
+- **🔄 Dynamic Collection Access**: Query any MongoDB collection without predefined schemas
+- **📊 Advanced Filtering**: Support for MongoDB operators and complex queries
+- **📄 Smart Pagination**: Built-in pagination with metadata and performance optimization
+- **🔍 Flexible Sorting**: Multi-field sorting with ascending/descending order
+- **📅 Intelligent Date Handling**: Automatic date format normalization and filtering
+- **⚡ Performance Optimized**: Lean queries, model caching, and efficient indexing
+- **🛠️ RESTful Design**: Clean, intuitive API endpoints
+- **🔒 Error Handling**: Comprehensive error handling and validation
+- **📋 Schema Discovery**: Automatic collection and field discovery
 
-## Quick Start
+## 📋 Table of Contents
+
+- [Quick Start](#quick-start)
+- [API Endpoints](#api-endpoints)
+- [Advanced Filtering](#advanced-filtering)
+- [Date Handling](#date-handling)
+- [Response Formats](#response-formats)
+- [Architecture](#architecture)
+- [Development](#development)
+- [Deployment](#deployment)
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
-- MongoDB database
-- Yarn package manager
+- **Node.js** v16 or higher
+- **MongoDB** 4.4 or higher
+- **Yarn** package manager
 
 ### Installation
 
-1. Clone the repository
-2. Install dependencies:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/micromaxdev/kpi-display-scoreboard.git
+   cd kpi-display-scoreboard/backend
+   ```
+
+2. **Install dependencies**
    ```bash
    yarn install
    ```
 
-3. Create a `.env` file with your MongoDB connection:
+3. **Environment Configuration**
+   Create a `.env` file in the root directory:
    ```env
-   MONGO_URI=mongodb://localhost:27017/your_database
+   # Database Configuration
+   MONGO_URI=mongodb://localhost:27017/kpi_scoreboard
+   
+   # Server Configuration
    PORT=5000
+   NODE_ENV=development
+   
+   # Optional: Email Configuration (if using email features)
+   EMAIL_HOST=smtp.gmail.com
+   EMAIL_PORT=587
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASS=your-app-password
    ```
 
-4. Start the server:
+4. **Start the server**
    ```bash
-   node server.js
+   # Development mode (with auto-reload)
+   yarn dev
+   
+   # Production mode
+   yarn start
    ```
 
-## API Endpoints
+5. **Verify installation**
+   ```bash
+   curl http://localhost:5000
+   # Expected response: {"message": "Hello World! Welcome to the API"}
+   ```
 
-### Get Collection Data
+## 🛠️ API Endpoints
 
-**Endpoint:** `GET /api/:collectionName`
+### 📊 Collection Data Operations
 
-Retrieves data from any MongoDB collection with pagination, filtering, and sorting.
+#### 1. Get Paginated Collection Data
+```http
+GET /api/find/:collectionName
+```
 
-#### Query Parameters
+**Description**: Retrieve paginated data from any MongoDB collection with advanced filtering and sorting.
 
+**Parameters**:
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `page` | number | 1 | Page number for pagination |
-| `limit` | number | 50 | Number of documents per page (0 = no limit) |
+| `page` | number | 1 | Page number (1-based) |
+| `limit` | number | 50 | Documents per page (limit = 0 Get all)|
 | `sortBy` | string | '_id' | Field to sort by |
-| `sortOrder` | string | 'desc' | Sort order ('asc' or 'desc') |
-| `[field]` | any | - | Any field filter (supports MongoDB operators) |
+| `sortOrder` | string | 'desc' | Sort direction ('asc' or 'desc') |
+| `[fieldName]` | any | - | Field-specific filters (supports MongoDB operators) |
 
-#### Examples
-
-**Basic Query:**
+**Examples**:
 ```bash
-GET /api/users
+# Basic pagination
+GET /api/find/users?page=1&limit=20
+
+# Sorted by creation date
+GET /api/find/tasks?sortBy=createdAt&sortOrder=asc
+
+# Filtered by status
+GET /api/find/orders?status=completed&sortBy=totalAmount&sortOrder=desc
 ```
 
-**With Pagination:**
-```bash
-GET /api/users?page=2&limit=10
-```
-
-**With Sorting:**
-```bash
-GET /api/users?sortBy=createdAt&sortOrder=asc
-```
-
-**With Filters:**
-```bash
-# Simple field filter
-GET /api/users?role=admin
-
-# MongoDB operator filter (JSON encoded)
-GET /api/users?age={"$gt":25}
-
-# Multiple filters
-GET /api/users?role=admin&status={"$in":["active","pending"]}
-```
-
-#### Response Format
-
+**Response**:
 ```json
 {
   "success": true,
   "data": [
     {
-      "_id": "507f1f77bcf86cd799439011",
+      "_id": "64f1234567890abcdef12345",
       "name": "John Doe",
       "email": "john@example.com",
-      "createdAt": "2024-01-01T00:00:00.000Z",
-      "updatedAt": "2024-01-01T00:00:00.000Z"
+      "status": "active",
+      "createdAt": "2024-08-09T10:30:00.000Z",
+      "updatedAt": "2024-08-09T10:30:00.000Z"
     }
   ],
   "pagination": {
@@ -111,232 +136,382 @@ GET /api/users?role=admin&status={"$in":["active","pending"]}
 }
 ```
 
-### Hello World Endpoints
+#### 2. Get Collections List
+```http
+GET /api/collectionList
+```
 
-**Root:** `GET /`
+**Description**: Retrieve all available collections in the database.
+
+**Response**:
 ```json
 {
-  "message": "Hello World! Welcome to the API"
+  "success": true,
+  "collections": [
+    "users",
+    "tasks",
+    "projects", 
+    "orders",
+    "analytics"
+  ],
+  "totalCollections": 5
 }
 ```
 
-**API Hello:** `GET /api/hello`
+#### 3. Get Collection Schema
+```http
+GET /api/collectionFields/:collectionName
+```
+
+**Description**: Discover field names and structure of a collection by analyzing sample documents.
+
+**Response**:
 ```json
 {
-  "message": "Hello World from API!"
+  "success": true,
+  "fields": [
+    "_id",
+    "name",
+    "email", 
+    "status",
+    "priority",
+    "dueDate",
+    "createdAt",
+    "updatedAt"
+  ],
+  "collectionName": "tasks"
 }
 ```
 
-## Advanced Filtering
+## 🔍 Advanced Filtering
 
-The API supports MongoDB operators for complex queries. All operator values must be JSON-encoded:
+The API supports the full range of MongoDB query operators for sophisticated data filtering.
 
 ### Comparison Operators
+
 ```bash
 # Greater than
-GET /api/users?age={"$gt":25}
+GET /api/find/products?price={"$gt":100}
 
-# Less than or equal
-GET /api/users?price={"$lte":100}
+# Less than or equal to
+GET /api/find/users?age={"$lte":65}
 
-# Not equal
-GET /api/users?status={"$ne":"inactive"}
+# Not equal to
+GET /api/find/tasks?status={"$ne":"cancelled"}
+
+# Range queries
+GET /api/find/orders?totalAmount={"$gte":50,"$lte":500}
 ```
 
-### Logical Operators
+### Array and Inclusion Operators
+
 ```bash
-# In array
-GET /api/users?role={"$in":["admin","moderator"]}
+# Value in array
+GET /api/find/users?role={"$in":["admin","manager","supervisor"]}
 
-# Not in array
-GET /api/users?category={"$nin":["spam","deleted"]}
+# Value not in array
+GET /api/find/products?category={"$nin":["discontinued","draft"]}
 
-# And operator
-GET /api/users?age={"$gte":18}&status=active
-
-# Or operator (requires JSON encoding)
-GET /api/users?{"$or":[{"age":{"$gte":18}},{"status":"active"}]}
+# Array contains all elements
+GET /api/find/tasks?tags={"$all":["urgent","bug"]}
 ```
 
-### Text Search
+### Pattern Matching and Text Search
+
 ```bash
-# Text search (if text index exists)
-GET /api/articles?title={"$regex":"javascript","$options":"i"}
+# Case-insensitive regex search
+GET /api/find/users?name={"$regex":"john","$options":"i"}
+
+# Text search (requires text index)
+GET /api/find/articles?title={"$text":{"$search":"mongodb nodejs"}}
+
+# Field existence
+GET /api/find/users?phoneNumber={"$exists":true}
 ```
 
-### Date-Based Filtering (duedate examples)
-**Note: Dates are stored in dd/mm/yy format as strings**
+### Complex Logical Operations
 
 ```bash
-# Find tasks due today (15/01/24)
-GET /api/tasks?duedate="15/01/24"
+# Multiple conditions (AND)
+GET /api/find/tasks?status=active&priority=high&assignedTo=user123
 
-# Find overdue tasks (past due date)
-GET /api/tasks?duedate={"$lt":"15/01/24"}
+# OR operations
+GET /api/find/tasks?{"$or":[{"status":"urgent"},{"dueDate":{"$lt":"2024-08-10"}}]}
 
-# Find tasks due in the next 7 days
-GET /api/tasks?duedate={"$in":["16/01/24","17/01/24","18/01/24","19/01/24","20/01/24","21/01/24","22/01/24"]}
-
-# Find tasks due this month (January 2024)
-GET /api/tasks?duedate={"$regex":"^[0-9]{2}/01/24$"}
-
-# Find tasks due between specific dates
-GET /api/tasks?duedate={"$in":["15/01/24","16/01/24","17/01/24","18/01/24","19/01/24","20/01/24","21/01/24","22/01/24","23/01/24","24/01/24","25/01/24","26/01/24","27/01/24","28/01/24","29/01/24","30/01/24","31/01/24"]}
-
-# Find tasks with no due date (null or missing)
-GET /api/tasks?duedate={"$exists":false}
-
-# Find tasks with due date set (not null)
-GET /api/tasks?duedate={"$exists":true}
-
-# Find tasks due in the past week
-GET /api/tasks?duedate={"$in":["08/01/24","09/01/24","10/01/24","11/01/24","12/01/24","13/01/24","14/01/24"]}
-
-# Find urgent tasks (due today or tomorrow)
-GET /api/tasks?duedate={"$in":["15/01/24","16/01/24"]}
-
-# Find tasks due this quarter (Q1 2024)
-GET /api/tasks?duedate={"$regex":"^[0-9]{2}/(01|02|03)/24$"}
-
-# Find tasks due next year (2025)
-GET /api/tasks?duedate={"$regex":"^[0-9]{2}/[0-9]{2}/25$"}
-
-# Find tasks with specific due date
-GET /api/tasks?duedate="15/01/24"
-
-# Find tasks due on weekends (Saturday or Sunday) - specific dates
-GET /api/tasks?duedate={"$in":["13/01/24","14/01/24","20/01/24","21/01/24"]}
-
-# Find tasks due in the last 30 days (using regex for date range)
-GET /api/tasks?duedate={"$regex":"^[0-9]{2}/(12|01)/24$"}
-
-### Combined Filtering with duedate
-```bash
-# Find high priority tasks due this week
-GET /api/tasks?priority=high&duedate={"$in":["15/01/24","16/01/24","17/01/24","18/01/24","19/01/24","20/01/24","21/01/24"]}
-
-# Find overdue tasks assigned to specific user
-GET /api/tasks?assignedTo=user123&duedate={"$lt":"15/01/24"}
-
-# Find completed tasks due in the past month
-GET /api/tasks?status=completed&duedate={"$regex":"^[0-9]{2}/(12|01)/24$"}
-
-# Find urgent tasks (high priority + due today)
-GET /api/tasks?priority=urgent&duedate="15/01/24"
-
-# Find tasks due this week for specific project
-GET /api/tasks?projectId=project456&duedate={"$in":["15/01/24","16/01/24","17/01/24","18/01/24","19/01/24","20/01/24","21/01/24"]}
-
-# Find overdue tasks with specific tags
-GET /api/tasks?tags={"$in":["bug","critical"]}&duedate={"$lt":"15/01/24"}
-
-# Find tasks due tomorrow that are not assigned
-GET /api/tasks?assignedTo={"$exists":false}&duedate="16/01/24"
-
-# Find tasks due this quarter with estimated hours > 8
-GET /api/tasks?duedate={"$regex":"^[0-9]{2}/(01|02|03)/24$"}&estimatedHours={"$gt":8}
+# Complex nested queries
+GET /api/find/orders?{"$and":[{"status":"shipped"},{"$or":[{"priority":"high"},{"totalAmount":{"$gt":1000}}]}]}
 ```
 
-### Date Formatting Tips
+## 📅 Date Handling
 
-**Date Format:**
-- **Stored Format**: `dd/mm/yy` (e.g., "15/01/24" for January 15, 2024)
-- **String-based**: All dates are stored as strings, not Date objects
+The API includes intelligent date processing with automatic format normalization.
 
-**Filtering Strategies:**
-- **Exact match**: Use direct string comparison for specific dates
-- **Date ranges**: Use `$in` operator with array of date strings
-- **Pattern matching**: Use regex for month/year filtering
-- **Lexicographical comparison**: Use `$lt`, `$gt` for chronological order
+### Supported Date Formats
 
-**Best Practices:**
-- Use exact date strings for specific date queries
-- Use `$in` arrays for date ranges (more reliable than lexicographical comparison)
-- Use regex patterns for month/year filtering
-- Always include leading zeros for single-digit days/months
+The system automatically handles various date formats:
+- **dd/mm/yy**: "09/08/24" (primary format)
+- **dd/mm/yyyy**: "09/08/2024" 
+- **ISO format**: "2024-08-09T10:30:00.000Z"
+- **US format**: "08/09/2024" (auto-detected and converted)
 
-**Common Date Patterns:**
+### Date Filtering Examples
+
 ```bash
-# Today's date (exact match)
-GET /api/tasks?duedate="15/01/24"
+# Exact date match
+GET /api/find/tasks?dueDate="09/08/24"
 
-# This week (using $in array)
-GET /api/tasks?duedate={"$in":["15/01/24","16/01/24","17/01/24","18/01/24","19/01/24","20/01/24","21/01/24"]}
+# Date range (this week)
+GET /api/find/tasks?dueDate={"$gte":"05/08/24","$lte":"11/08/24"}
 
-# This month (using regex pattern)
-GET /api/tasks?duedate={"$regex":"^[0-9]{2}/01/24$"}
+# Multiple specific dates
+GET /api/find/events?eventDate={"$in":["09/08/24","10/08/24","11/08/24"]}
 
-# Date range (lexicographical comparison)
-GET /api/tasks?duedate={"$gte":"01/01/24","$lte":"31/01/24"}
+# This month (August 2024)
+GET /api/find/tasks?dueDate={"$regex":"^[0-9]{2}/08/24$"}
+
+# Overdue tasks (before today)
+GET /api/find/tasks?dueDate={"$lt":"09/08/24"}&status={"$ne":"completed"}
+
+# Next 7 days
+GET /api/find/tasks?dueDate={"$gte":"09/08/24","$lte":"16/08/24"}
+
+# Tasks without due dates
+GET /api/find/tasks?dueDate={"$exists":false}
 ```
 
-## Performance Features
+### Business Logic Examples
 
-- **Model Caching**: Dynamic models are cached to avoid recreation
-- **Lean Queries**: Returns plain JavaScript objects instead of Mongoose documents
-- **Indexing**: Automatic indexing on `createdAt` and `updatedAt` fields
-- **Pagination**: Efficient skip/limit pagination
-- **Flexible Schema**: No predefined fields, accepts any data structure
+```bash
+# High priority overdue tasks
+GET /api/find/tasks?priority=high&dueDate={"$lt":"09/08/24"}&status=pending
 
-## Error Handling
+# Weekly team performance
+GET /api/find/completedTasks?completedAt={"$gte":"05/08/24","$lte":"11/08/24"}&teamId=team123
 
-The API returns consistent error responses:
+# Monthly revenue analysis
+GET /api/find/orders?orderDate={"$regex":"^[0-9]{2}/08/24$"}&status=completed
+
+# Quarterly KPI tracking
+GET /api/find/metrics?reportDate={"$regex":"^[0-9]{2}/(06|07|08)/24$"}
+```
+
+## 📋 Response Formats
+
+### Success Response Structure
+
+```json
+{
+  "success": true,
+  "data": [...],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 10,
+    "totalDocuments": 500,
+    "limit": 50,
+    "hasNextPage": true,
+    "hasPrevPage": false
+  },
+  "collectionName": "collection_name"
+}
+```
+
+### Error Response Structure
 
 ```json
 {
   "success": false,
-  "message": "Error retrieving data",
-  "error": "Detailed error message"
+  "message": "Human-readable error message",
+  "error": "Detailed technical error information",
+  "statusCode": 400
 }
 ```
 
-## Environment Variables
+### Common HTTP Status Codes
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `MONGO_URI` | MongoDB connection string | Required |
-| `PORT` | Server port | 5000 |
+- **200**: Success
+- **400**: Bad Request (invalid query parameters)
+- **404**: Collection/Document not found  
+- **500**: Internal Server Error
 
-## Development
-
-### Running in Development Mode
-```bash
-nodemon server.js
-```
+## 🏗️ Architecture
 
 ### Project Structure
+
 ```
 backend/
-├── config/
-│   ├── db.js              # Database connection
-│   └── join.js            # MongoDB aggregation utilities
-├── controllers/
-│   └── dynamicModelController.js  # Main API logic
-├── middleware/
-│   ├── authMiddleware.js   # Authentication middleware
-│   └── errorMiddleware.js  # Error handling middleware
-├── models/
-│   └── dynamicModel.js     # Dynamic model generator
-├── routes/
-│   └── dynamicModelRoutes.js  # API routes
-├── services/
-│   ├── emailService.js     # Email functionality
-│   └── webService.js       # Web service utilities
-└── server.js               # Main server file
+├── 📁 config/
+│   ├── db.js                    # MongoDB connection setup
+│   └── join.js                  # Aggregation pipeline utilities
+├── 📁 controllers/
+│   └── dynamicModelController.js # Main API request handlers
+├── 📁 middleware/
+│   ├── authMiddleware.js        # Authentication middleware
+│   └── errorMiddleware.js       # Global error handling
+├── 📁 models/
+│   └── dynamicModel.js          # Dynamic Mongoose model generator
+├── 📁 routes/
+│   └── dynamicModelRoutes.js    # API route definitions
+├── 📁 services/
+│   ├── dataService.js           # Core data operations
+│   ├── queryService.js          # Query building utilities  
+│   └── dateService.js           # Date formatting and normalization
+├── 📄 server.js                 # Application entry point
+├── 📄 package.json              # Dependencies and scripts
+└── 📄 .env                      # Environment configuration
 ```
 
-## Dependencies
+### Service Layer Architecture
 
-- **express**: Web framework
-- **mongoose**: MongoDB ODM
-- **cors**: Cross-origin resource sharing
-- **dotenv**: Environment variable management
-- **bcryptjs**: Password hashing
-- **jsonwebtoken**: JWT authentication
-- **express-async-handler**: Async error handling
-- **nodemailer**: Email sending
-- **mongodb**: MongoDB driver
+#### DataService (`dataService.js`)
+- **Primary Functions**: CRUD operations, pagination, aggregation
+- **Key Methods**: 
+  - `getPaginatedDataFromCollection()`
+  - `getCollectionFields()`
+  - `getCountFromCollection()`
 
-## License
+#### QueryService (`queryService.js`) 
+- **Primary Functions**: Query building, parameter extraction, pagination metadata
+- **Key Methods**:
+  - `buildQuery()` - Converts request params to MongoDB queries
+  - `buildSortOptions()` - Handles sorting configuration
+  - `buildPaginationInfo()` - Generates pagination metadata
+  - `extractQueryParams()` - Validates and processes request parameters
 
-This project is licensed under the MIT License.
+#### DateService (`dateService.js`)
+- **Primary Functions**: Date format detection and normalization
+- **Key Methods**:
+  - `normalizeDateFormat()` - Converts various date formats to standard format
+  - `isLikelyDate()` - Intelligent date string detection
+
+### Performance Optimizations
+
+- **🏷️ Model Caching**: Dynamic Mongoose models are cached to prevent recreation
+- **⚡ Lean Queries**: Returns plain JavaScript objects instead of Mongoose documents
+- **📇 Automatic Indexing**: Indexes on `createdAt` and `updatedAt` fields
+- **🔍 Query Optimization**: Efficient skip/limit pagination
+- **🛡️ Schema Flexibility**: No predefined schemas, accepts any data structure
+
+## 🛠️ Development
+
+### Development Scripts
+
+```bash
+# Start development server with auto-reload
+yarn dev
+
+# Start production server
+yarn start
+
+# Install dependencies
+yarn install
+
+# Check for outdated packages
+yarn outdated
+```
+
+### Development Guidelines
+
+1. **Code Style**: Use ES6+ modules and modern JavaScript features
+2. **Error Handling**: Always use try-catch blocks in async functions
+3. **Validation**: Validate input parameters in service functions
+4. **Logging**: Use `console.error()` for error logging with context
+5. **Testing**: Test endpoints with various query combinations
+
+### Environment Variables
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `MONGO_URI` | MongoDB connection string | - | ✅ |
+| `PORT` | Server port | 5000 | ❌ |
+| `NODE_ENV` | Environment mode | development | ❌ |
+| `EMAIL_HOST` | SMTP server host | - | ❌ |
+| `EMAIL_PORT` | SMTP server port | 587 | ❌ |
+| `EMAIL_USER` | Email username | - | ❌ |
+| `EMAIL_PASS` | Email password | - | ❌ |
+
+## 🚀 Deployment
+
+### Production Deployment
+
+1. **Environment Setup**
+   ```bash
+   # Set production environment
+   export NODE_ENV=production
+   export PORT=3000
+   export MONGO_URI="mongodb+srv://user:pass@cluster.mongodb.net/kpi_prod"
+   ```
+
+2. **Build and Start**
+   ```bash
+   yarn install --production
+   yarn start
+   ```
+
+3. **Process Management** (using PM2)
+   ```bash
+   npm install -g pm2
+   pm2 start server.js --name "kpi-api"
+   pm2 startup
+   pm2 save
+   ```
+
+### Docker Deployment
+
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN yarn install --production
+COPY . .
+EXPOSE 5000
+CMD ["node", "server.js"]
+```
+
+### Health Check Endpoint
+
+The API provides a health check endpoint:
+```bash
+GET /
+# Response: {"message": "Hello World! Welcome to the API"}
+```
+
+## 📦 Dependencies
+
+### Production Dependencies
+
+- **express** ^5.1.0 - Web application framework
+- **mongoose** ^8.17.0 - MongoDB object modeling
+- **cors** ^2.8.5 - Cross-origin resource sharing
+- **dotenv** ^16.3.1 - Environment variable management
+- **moment** ^2.30.1 - Date manipulation library
+- **bcryptjs** ^2.4.3 - Password hashing
+- **jsonwebtoken** ^9.0.2 - JWT token handling
+- **express-async-handler** ^1.2.0 - Async error handling
+- **nodemailer** ^6.9.7 - Email sending capabilities
+- **mongodb** ^6.3.0 - Native MongoDB driver
+
+### Development Dependencies
+
+- **nodemon** ^3.1.10 - Development server with auto-reload
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📞 Support
+
+For support and questions:
+- **Repository**: [kpi-display-scoreboard](https://github.com/micromaxdev/kpi-display-scoreboard)
+- **Issues**: [GitHub Issues](https://github.com/micromaxdev/kpi-display-scoreboard/issues)
+
+---
+
+Built with ❤️ by [Micromax Dev](https://github.com/micromaxdev)
