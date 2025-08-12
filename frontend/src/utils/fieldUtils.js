@@ -23,8 +23,7 @@ export const isMeasurableField = (fieldName) => {
     'metric', 'kpi', 'performance', 'efficiency', 'productivity',
     'sales', 'orders', 'transactions', 'payments', 'refunds',
     'inventory', 'stock', 'units', 'items', 'products', 'services',
-    'customers', 'users', 'members', 'employees', 'staff',
-    'visits', 'views', 'clicks', 'downloads', 'uploads',
+    'customers', 'visits', 'views', 'clicks', 'downloads', 'uploads',
     'margin', 'discount', 'tax', 'interest', 'commission',
     // Date fields (for time-based measurements)
     'date', 'time', 'created', 'updated', 'modified', 'timestamp',
