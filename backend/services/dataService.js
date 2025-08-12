@@ -117,7 +117,7 @@ export const getCollectionFields = async (collectionName) => {
         const Model = getDynamicModel(collectionName);
 
         // Get one document to infer fields
-        const doc = await Model.findOne().lean().exec();
+        const doc = await Model.findOne({}, { _id: 0, __v: 0, createdAt: 0, updatedAt: 0 }).lean().exec();
         if (!doc) {
             return [];
         }
