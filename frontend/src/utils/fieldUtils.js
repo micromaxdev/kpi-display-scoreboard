@@ -38,7 +38,7 @@ export const isMeasurableField = (fieldName) => {
     'email', 'phone', 'address', 'city', 'state', 'country',
     'url', 'link', 'path', 'file', 'image', 'photo',
     'password', 'hash', 'token', 'key', 'secret', 'code',
-    'message', 'text', 'content', 'body', 'subject'
+    'message', 'text', 'content', 'body', 'subject','employee'
   ];
   
   // Check if field should be excluded
