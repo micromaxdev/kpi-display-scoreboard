@@ -1,6 +1,8 @@
 import './ThresholdForm.css';
+import { useMemo } from 'react';
 import { useThresholdFormWithData } from '../hooks/useThresholdForm';
 import { getPlaceholderText, formatFieldDisplayName } from '../utils/formUtils';
+import { getDirectionSuggestion } from '../utils/fieldUtils';
 import CollectionDataTable from './CollectionDataTable';
 
 const ThresholdForm = () => {
@@ -26,6 +28,21 @@ const ThresholdForm = () => {
     amberThreshold,
     direction
   } = formData;
+
+  // Get direction suggestion for the selected field
+  const directionSuggestion = useMemo(() => {
+    console.log('Calculating direction suggestion for field:', selectedField);
+    const suggestion = getDirectionSuggestion(selectedField);
+    console.log('Direction suggestion result:', suggestion);
+    return suggestion;
+  }, [selectedField]);
+  
+  // Handle applying the suggested direction
+  const applySuggestedDirection = () => {
+    if (directionSuggestion.suggestion) {
+      updateField('direction', directionSuggestion.suggestion);
+    }
+  };
 
   return (
     <div className="threshold-form-container">
@@ -101,6 +118,38 @@ const ThresholdForm = () => {
                   {selectedCollection && fields.length === 0 && !loading && (
                     <div className="field-help">
                       <small>Only showing fields suitable for KPI measurement (amounts, dates, counts, etc.)</small>
+                    </div>
+                  )}
+                  
+                  {/* Direction Suggestion */}
+                  {selectedField && directionSuggestion.suggestion && (
+                    <div className="direction-suggestion">
+                      <div className="suggestion-header">
+                        <span className="suggestion-icon">💡</span>
+                        <strong>Smart Suggestion:</strong>
+                      </div>
+                      <div className="suggestion-content">
+                        <p className="suggestion-text">
+                          <span className={`suggested-direction ${directionSuggestion.suggestion}`}>
+                            {directionSuggestion.suggestion === 'higher' ? 'Higher is Better' : 'Lower is Better'}
+                          </span>
+                          <span className={`confidence-badge ${directionSuggestion.confidence}`}>
+                            {directionSuggestion.confidence} confidence
+                          </span>
+                        </p>
+                        <p className="suggestion-explanation">
+                          {directionSuggestion.explanation}
+                        </p>
+                        {direction !== directionSuggestion.suggestion && (
+                          <button 
+                            type="button" 
+                            className="apply-suggestion-btn"
+                            onClick={applySuggestedDirection}
+                          >
+                            Apply Suggestion
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
