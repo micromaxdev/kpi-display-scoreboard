@@ -9,25 +9,33 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
  * @returns {Promise<object>} - API response with collections data
  */
 export const fetchCollections = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/collectionList`);
-    const data = await response.json();
-    
-    console.log('Collections response:', data);
-    
-    return {
-      success: data.success,
-      collections: data.collections || [],
-      error: null
-    };
-  } catch (error) {
-    console.error('Error fetching collections:', error);
-    return {
-      success: false,
-      collections: [],
-      error: 'Error connecting to server'
-    };
-  }
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/collectionList`);
+        const data = await response.json();
+        
+        console.log('Collections response:', data);
+
+        // Sort collections alphabetically if present
+        const collections = (data.collections || []).slice().sort((a, b) => {
+            if (typeof a === 'string' && typeof b === 'string') {
+                return a.localeCompare(b);
+            }
+            return 0;
+        });
+
+        return {
+            success: data.success,
+            collections,
+            error: null
+        };
+    } catch (error) {
+        console.error('Error fetching collections:', error);
+        return {
+            success: false,
+            collections: [],
+            error: 'Error connecting to server'
+        };
+    }
 };
 
 /**
