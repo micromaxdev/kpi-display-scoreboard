@@ -161,3 +161,46 @@ export const formatFieldDisplayName = (fieldName) => {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 };
+
+/**
+ * Validates threshold values based on direction
+ * @param {string|number} greenThreshold - Green threshold value
+ * @param {string|number} amberThreshold - Amber threshold value
+ * @param {string} direction - Direction ('higher' or 'lower')
+ * @returns {object} - Validation result with success status and message
+ */
+export async function checkThresholds(greenThreshold, amberThreshold, direction) {
+    const green = parseFloat(greenThreshold);
+    const amber = parseFloat(amberThreshold);
+    
+    // Check if values are valid numbers
+    if (isNaN(green) || isNaN(amber)) {
+        return {
+            success: false,
+            message: 'Threshold values must be valid numbers'
+        };
+    }
+    
+    if (direction === 'higher') {
+        if (green <= amber) {
+            return {
+                success: false,
+                message: 'For HIGHER direction, green threshold must be greater than amber threshold'
+            };
+        }
+    } else if (direction === 'lower') {
+        if (green >= amber) {
+            return {
+                success: false,
+                message: 'For LOWER direction, green threshold must be less than amber threshold'
+            };
+        }
+    } else {
+        return {
+            success: false,
+            message: 'Direction must be either HIGHER or LOWER'
+        };
+    }
+    
+    return { success: true };
+}

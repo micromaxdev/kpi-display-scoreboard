@@ -190,6 +190,30 @@
   background: #0056b3;
 }
 
+/* Threshold Validation Error Styles */
+.threshold-error {
+  margin-top: 0.125rem;
+  padding: 0.05rem 0.25rem;   
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 21px;
+  color: #721c24 !important;
+  font-size: 0.875rem;       
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;             
+}
+
+.error-icon {
+  font-size: 0.7rem;
+}
+
+.form-group input.error,
+.form-group select.error {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+}
+
 .form-actions {
   margin-top: auto;
 }

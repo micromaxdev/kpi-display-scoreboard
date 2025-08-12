@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { fetchCollections, fetchCollectionFields, saveThreshold, fetchCollectionSampleData } from '../services/apiService';
 import { filterMeasurableFields } from '../utils/fieldUtils';
-import { validateThresholdForm, createMessage, getInitialFormState } from '../utils/formUtils';
+import { validateThresholdForm, createMessage, getInitialFormState, checkThresholds } from '../utils/formUtils';
 
 /**
  * Custom hook for managing collections data
@@ -147,6 +147,29 @@ export const useThresholdForm = () => {
   const [formData, setFormData] = useState(getInitialFormState());
   const [message, setMessage] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
+  const [thresholdValidation, setThresholdValidation] = useState({ isValid: true, message: '' });
+
+  // Real-time threshold validation
+  const validateThresholds = async () => {
+    const { greenThreshold, amberThreshold, direction } = formData;
+    
+    // Only validate if both thresholds have values
+    if (greenThreshold && amberThreshold && direction) {
+      const result = await checkThresholds(greenThreshold, amberThreshold, direction);
+      setThresholdValidation({
+        isValid: result.success,
+        message: result.message || ''
+      });
+    } else {
+      // Reset validation if fields are empty
+      setThresholdValidation({ isValid: true, message: '' });
+    }
+  };
+
+  // Run threshold validation when relevant fields change
+  useEffect(() => {
+    validateThresholds();
+  }, [formData.greenThreshold, formData.amberThreshold, formData.direction]);
 
   // Update individual form fields
   const updateField = (fieldName, value) => {
@@ -197,6 +220,7 @@ export const useThresholdForm = () => {
     formData,
     message,
     loading,
+    thresholdValidation,
     updateField,
     resetForm,
     clearMessage,

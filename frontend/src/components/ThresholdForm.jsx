@@ -10,6 +10,7 @@ const ThresholdForm = () => {
     formData,
     message,
     loading,
+    thresholdValidation,
     collections,
     fields,
     sampleData,
@@ -167,6 +168,7 @@ const ThresholdForm = () => {
                     step="0.01"
                     disabled={loading}
                     required
+                    className={!thresholdValidation.isValid ? 'error' : ''}
                   />
                 </div>
 
@@ -181,7 +183,14 @@ const ThresholdForm = () => {
                     step="0.01"
                     disabled={loading}
                     required
+                    className={!thresholdValidation.isValid ? 'error' : ''}
                   />
+                  {!thresholdValidation.isValid && (
+                    <div className="threshold-error">
+                      <span className="error-icon">⚠️</span>
+                      {thresholdValidation.message}
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-group">
