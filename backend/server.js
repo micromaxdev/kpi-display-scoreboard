@@ -1,11 +1,11 @@
-import path from "path";
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
-import router from "./routes/dynamicModelRoutes.js";
+import dynamicModelRouter from "./routes/dynamicModelRoutes.js";
 import kpiRouter from "./routes/kpiRoutes.js";
+import thresholdRouter from "./routes/thresholdRoutes.js";
 dotenv.config();
 
 const port = process.env.PORT || 5000;
@@ -25,8 +25,11 @@ app.get('/', (req, res) => {
 });
 
 // API Routes
-app.use('/api', router);
+app.use('/api', dynamicModelRouter);
 app.use('/kpi-api', kpiRouter);
+app.use('/threshold-api', thresholdRouter);
+
+
 // Custom error handler middleware
 app.use(errorHandler);
 
