@@ -1,4 +1,21 @@
-import './CollectionDataTable.css';
+import {
+  DataTableContainer,
+  Header,
+  FieldLegend,
+  LegendItem,
+  LegendDot,
+  TableWrapper,
+  Table,
+  Th,
+  Td,
+  TableFooter,
+  CenteredContent,
+  Loading,
+  Spinner,
+  MeasurableIcon,
+  ErrorText,
+} from '../styles/CollectionDataTable.styled';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const CollectionDataTable = ({ 
   collectionName, 
@@ -9,61 +26,61 @@ const CollectionDataTable = ({
 }) => {
   if (!collectionName) {
     return (
-      <div className="data-table-container static">
-        <div className="data-table-header">
+      <DataTableContainer initial={{ opacity: 0 }} animate={{ opacity: 1 }} layout>
+        <Header>
           <h3>Collection Data Preview</h3>
           <p>Select a collection to see sample data</p>
-        </div>
-        <div className="placeholder-content">
-          <div className="placeholder-icon">📊</div>
+        </Header>
+        <CenteredContent initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} layout>
+          <div className="icon">📊</div>
           <p>Choose a collection from the dropdown to preview its data structure and fields.</p>
-        </div>
-      </div>
+        </CenteredContent>
+      </DataTableContainer>
     );
   }
 
   if (loading) {
     return (
-      <div className="data-table-container static">
-        <div className="data-table-header">
+      <DataTableContainer initial={{ opacity: 0 }} animate={{ opacity: 1 }} layout>
+        <Header>
           <h3>Collection Data Preview</h3>
           <p>Loading sample data for {collectionName}...</p>
-        </div>
-        <div className="loading-spinner">
-          <div className="spinner"></div>
+        </Header>
+        <Loading>
+          <Spinner />
           <p>Fetching data...</p>
-        </div>
-      </div>
+        </Loading>
+      </DataTableContainer>
     );
   }
 
   if (error) {
     return (
-      <div className="data-table-container static">
-        <div className="data-table-header">
+      <DataTableContainer initial={{ opacity: 0 }} animate={{ opacity: 1 }} layout>
+        <Header>
           <h3>Collection Data Preview</h3>
-          <p className="error-text">Error loading data: {error}</p>
-        </div>
-        <div className="error-content">
-          <div className="error-icon">⚠️</div>
+          <ErrorText>Error loading data: {error}</ErrorText>
+        </Header>
+        <CenteredContent initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} layout>
+          <div className="icon">⚠️</div>
           <p>Unable to load data for this collection.</p>
-        </div>
-      </div>
+        </CenteredContent>
+      </DataTableContainer>
     );
   }
 
   if (!sampleData || sampleData.length === 0) {
     return (
-      <div className="data-table-container static">
-        <div className="data-table-header">
+      <DataTableContainer initial={{ opacity: 0 }} animate={{ opacity: 1 }} layout>
+        <Header>
           <h3>Collection Data Preview</h3>
           <p>No data found for {collectionName}</p>
-        </div>
-        <div className="empty-content">
-          <div className="empty-icon">📭</div>
+        </Header>
+        <CenteredContent initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} layout>
+          <div className="icon">📭</div>
           <p>This collection appears to be empty.</p>
-        </div>
-      </div>
+        </CenteredContent>
+      </DataTableContainer>
     );
   }
 
@@ -124,66 +141,74 @@ const formatCellValue = (value) => {
   };
 
   return (
-    <div className="data-table-container static">
-      <div className="data-table-header">
+    <DataTableContainer initial={{ opacity: 0 }} animate={{ opacity: 1 }} layout>
+      <Header>
         <h3>Collection Data Preview</h3>
         <p>
           Showing {sampleData.length} sample records with all fields from <strong>{collectionName}</strong>
         </p>
-        <div className="field-legend">
-          <span className="legend-item">
-            <span className="legend-dot measurable"></span>
+        <FieldLegend>
+          <LegendItem>
+            <LegendDot $type="measurable" />
             Measurable fields (for KPI)
-          </span>
-          <span className="legend-item">
-            <span className="legend-dot regular"></span>
+          </LegendItem>
+          <LegendItem>
+            <LegendDot $type="regular" />
             Other fields
-          </span>
-        </div>
-      </div>
-      
-      <div className="table-wrapper">
-        <table className="data-table">
+          </LegendItem>
+        </FieldLegend>
+      </Header>
+
+      <TableWrapper as={motion.div} layout>
+        <Table as={motion.table} layout>
           <thead>
-            <tr>
+            <motion.tr initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
               {displayFields.map((field, index) => (
-                <th 
-                  key={index} 
-                  className={isFieldMeasurable(field) ? 'measurable-header' : 'regular-header'}
+                <Th
+                  as={motion.th}
+                  key={index}
+                  $measurable={isFieldMeasurable(field)}
                   title={isFieldMeasurable(field) ? 'This field can be used for KPI measurement' : 'Regular field'}
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.02, duration: 0.2 }}
                 >
                   {field}
-                  {isFieldMeasurable(field) && <span className="measurable-icon">📊</span>}
-                </th>
+                  {isFieldMeasurable(field) && <MeasurableIcon>📊</MeasurableIcon>}
+                </Th>
               ))}
-            </tr>
+            </motion.tr>
           </thead>
           <tbody>
-            {sampleData.map((row, rowIndex) => (
-              <tr key={rowIndex}>
-                {displayFields.map((field, cellIndex) => (
-                  <td 
-                    key={cellIndex}
-                    className={isFieldMeasurable(field) ? 'measurable-cell' : 'regular-cell'}
-                  >
-                    {formatCellValue(row[field])}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            <AnimatePresence initial={false}>
+              {sampleData.map((row, rowIndex) => (
+                <motion.tr
+                  key={rowIndex}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+               >
+                  {displayFields.map((field, cellIndex) => (
+                    <Td as={motion.td} key={cellIndex} $measurable={isFieldMeasurable(field)} layout>
+                      {formatCellValue(row[field])}
+                    </Td>
+                  ))}
+                </motion.tr>
+              ))}
+            </AnimatePresence>
           </tbody>
-        </table>
-      </div>
-      
+        </Table>
+      </TableWrapper>
+
       {allFields.length > displayFields.length && (
-        <div className="table-footer">
+        <TableFooter>
           <small>
-            Showing {displayFields.length} of {allFields.length} fields. 
-            Measurable fields are highlighted for KPI calculations.
+            Showing {displayFields.length} of {allFields.length} fields. Measurable fields are highlighted for KPI calculations.
           </small>
-        </div>
+        </TableFooter>
       )}
-    </div>
+    </DataTableContainer>
   );
 };
 

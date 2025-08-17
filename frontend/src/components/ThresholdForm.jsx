@@ -1,5 +1,44 @@
-import './ThresholdForm.css';
-import { useMemo } from 'react';
+import {
+  Page,
+  Header as PageHeader,
+  Content,
+  FormSection,
+  DataSection,
+  CardForm,
+  CollectionSection,
+  ConfigSection,
+  FieldSection,
+  ThresholdSection,
+  DirectionSuggestion,
+  SuggestionHeader,
+  SuggestionIcon,
+  SuggestionContent,
+  SuggestionText,
+  SuggestedDirection,
+  ConfidenceBadge,
+  SuggestionExplanation,
+  ApplySuggestionButton,
+  ThresholdError,
+  ErrorIcon,
+  Actions,
+  FormGroup,
+  SelectedInfo,
+  FieldHelp,
+  Message,
+  CloseBtn,
+  ThresholdInfo,
+  InfoGrid,
+  InfoItem,
+  ColorIndicator,
+  SubmitBtn,
+  ResetBtn,
+  LabelRow,
+  InfoHelp,
+  InfoIcon,
+  Tooltip,
+} from '../styles/ThresholdForm.styled';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useMemo, useState } from 'react';
 import { useThresholdFormWithData } from '../hooks/useThresholdForm';
 import { getPlaceholderText, formatFieldDisplayName } from '../utils/formUtils';
 import { getDirectionSuggestion } from '../utils/fieldUtils';
@@ -30,6 +69,11 @@ const ThresholdForm = () => {
     direction
   } = formData;
 
+  // Tooltip visibility state
+  const [showGreenTip, setShowGreenTip] = useState(false);
+  const [showAmberTip, setShowAmberTip] = useState(false);
+  const [showDirectionTip, setShowDirectionTip] = useState(false);
+
   // Get direction suggestion for the selected field
   const directionSuggestion = useMemo(() => {
     console.log('Calculating direction suggestion for field:', selectedField);
@@ -46,25 +90,25 @@ const ThresholdForm = () => {
   };
 
   return (
-    <div className="threshold-form-container">
-      <div className="form-header">
+    <Page>
+      <PageHeader>
         <h2>Set KPI Thresholds</h2>
         <p>Configure green and amber thresholds for your KPI metrics</p>
-      </div>
+      </PageHeader>
 
       {message.text && (
-        <div className={`message ${message.type}`}>
+        <Message $type={message.type}>
           <span>{message.text}</span>
-          <button onClick={clearMessage} className="close-btn">&times;</button>
-        </div>
+          <CloseBtn onClick={clearMessage}>&times;</CloseBtn>
+        </Message>
       )}
 
-      <div className="form-content">
-        <div className="form-section">
-          <form onSubmit={handleSubmit} className="threshold-form">
+      <Content>
+        <FormSection>
+          <CardForm onSubmit={handleSubmit} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             {/* Collection Selection - Full Width */}
-            <div className="collection-section">
-              <div className="form-group">
+            <CollectionSection>
+              <FormGroup>
                 <label htmlFor="collection">Collection *</label>
                 <select
                   id="collection"
@@ -73,7 +117,7 @@ const ThresholdForm = () => {
                     console.log('Selected collection:', e.target.value);
                     updateField('selectedCollection', e.target.value);
                   }}
-                  disabled={loading}
+                  disabled={false}
                   required
                 >
                   <option value="">{getPlaceholderText({ loading }, 'collection')}</option>
@@ -84,15 +128,15 @@ const ThresholdForm = () => {
                   ))}
                 </select>
                 {selectedCollection && (
-                  <div className="selected-info">Selected: {selectedCollection}</div>
+                  <SelectedInfo>Selected: {selectedCollection}</SelectedInfo>
                 )}
-              </div>
-            </div>
+              </FormGroup>
+            </CollectionSection>
 
             {/* Field and Threshold Configuration */}
-            <div className="config-section">
-              <div className="field-section">
-                <div className="form-group">
+            <ConfigSection>
+              <FieldSection>
+                <FormGroup>
                   <label htmlFor="field">Field * <span className="field-info">(Only measurable fields shown)</span></label>
                   <select
                     id="field"
@@ -101,7 +145,7 @@ const ThresholdForm = () => {
                       console.log('Selected field:', e.target.value);
                       updateField('selectedField', e.target.value);
                     }}
-                    disabled={loading || !selectedCollection}
+                    disabled={!selectedCollection}
                     required
                   >
                     <option value="">
@@ -114,51 +158,88 @@ const ThresholdForm = () => {
                     ))}
                   </select>
                   {selectedField && (
-                    <div className="selected-info">Selected: {formatFieldDisplayName(selectedField)}</div>
+                    <SelectedInfo>Selected: {formatFieldDisplayName(selectedField)}</SelectedInfo>
                   )}
                   {selectedCollection && fields.length === 0 && !loading && (
-                    <div className="field-help">
+                    <FieldHelp>
                       <small>Only showing fields suitable for KPI measurement (amounts, dates, counts, etc.)</small>
-                    </div>
+                    </FieldHelp>
                   )}
                   
-                  {/* Direction Suggestion */}
-                  {selectedField && directionSuggestion.suggestion && (
-                    <div className="direction-suggestion">
-                      <div className="suggestion-header">
-                        <span className="suggestion-icon">💡</span>
-                        <strong>Smart Suggestion:</strong>
-                      </div>
-                      <div className="suggestion-content">
-                        <p className="suggestion-text">
-                          <span className={`suggested-direction ${directionSuggestion.suggestion}`}>
-                            {directionSuggestion.suggestion === 'higher' ? 'Higher is Better' : 'Lower is Better'}
-                          </span>
-                          <span className={`confidence-badge ${directionSuggestion.confidence}`}>
-                            {directionSuggestion.confidence} confidence
-                          </span>
-                        </p>
-                        <p className="suggestion-explanation">
-                          {directionSuggestion.explanation}
-                        </p>
-                        {direction !== directionSuggestion.suggestion && (
-                          <button 
-                            type="button" 
-                            className="apply-suggestion-btn"
-                            onClick={applySuggestedDirection}
-                          >
-                            Apply Suggestion
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+                  {/* Direction Suggestion with animation */}
+                  <AnimatePresence initial={false} mode="wait">
+                    {selectedField && directionSuggestion.suggestion && (
+                      <DirectionSuggestion
+                        as={motion.div}
+                        key={`${selectedField}-${directionSuggestion.suggestion}`}
+                        layout
+                        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.25, ease: 'easeOut' } }}
+                        exit={{ opacity: 0, y: -6, scale: 0.98, transition: { duration: 0.2, ease: 'easeIn' } }}
+                      >
+                        <SuggestionHeader as={motion.div} layout>
+                          <SuggestionIcon as={motion.span} initial={{ rotate: -8 }} animate={{ rotate: 0 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }}>💡</SuggestionIcon>
+                          <strong>Smart Suggestion:</strong>
+                        </SuggestionHeader>
+                        <SuggestionContent as={motion.div} layout>
+                          <SuggestionText as={motion.p} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}>
+                            <SuggestedDirection $type={directionSuggestion.suggestion}>
+                              {directionSuggestion.suggestion === 'higher' ? 'Higher is Better' : 'Lower is Better'}
+                            </SuggestedDirection>
+                            <ConfidenceBadge as={motion.span} $level={directionSuggestion.confidence} initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 250, damping: 16 }}>
+                              {directionSuggestion.confidence} confidence
+                            </ConfidenceBadge>
+                          </SuggestionText>
+                          <SuggestionExplanation as={motion.p} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
+                            {directionSuggestion.explanation}
+                          </SuggestionExplanation>
+                          {direction !== directionSuggestion.suggestion && (
+                            <ApplySuggestionButton
+                              as={motion.button}
+                              type="button"
+                              onClick={applySuggestedDirection}
+                              whileHover={{ scale: 1.03 }}
+                              whileTap={{ scale: 0.97 }}
+                            >
+                              Apply Suggestion
+                            </ApplySuggestionButton>
+                          )}
+                        </SuggestionContent>
+                      </DirectionSuggestion>
+                    )}
+                  </AnimatePresence>
+                </FormGroup>
+              </FieldSection>
 
-              <div className="threshold-section">
-                <div className="form-group">
-                  <label htmlFor="greenThreshold">Green Threshold *</label>
+              <ThresholdSection>
+                <FormGroup>
+                  <label htmlFor="greenThreshold">
+                    <LabelRow>
+                      <span>Green Threshold *</span>
+                      <InfoHelp
+                        as={motion.div}
+                        onHoverStart={() => setShowGreenTip(true)}
+                        onHoverEnd={() => setShowGreenTip(false)}
+                        onFocus={() => setShowGreenTip(true)}
+                        onBlur={() => setShowGreenTip(false)}
+                      >
+                        <InfoIcon type="button" aria-label="Green threshold help">i</InfoIcon>
+                        <AnimatePresence>
+                          {showGreenTip && (
+                            <Tooltip
+                              as={motion.div}
+                              key="tt-green"
+                              initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                              animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.15, ease: 'easeOut' } }}
+                              exit={{ opacity: 0, y: 6, scale: 0.98, transition: { duration: 0.1, ease: 'easeIn' } }}
+                            >
+                              <strong>Green threshold</strong> is the target value for strong performance. Values meeting or exceeding this are considered green.
+                            </Tooltip>
+                          )}
+                        </AnimatePresence>
+                      </InfoHelp>
+                    </LabelRow>
+                  </label>
                   <input
                     type="number"
                     id="greenThreshold"
@@ -170,10 +251,36 @@ const ThresholdForm = () => {
                     required
                     className={!thresholdValidation.isValid ? 'error' : ''}
                   />
-                </div>
+                </FormGroup>
 
-                <div className="form-group">
-                  <label htmlFor="amberThreshold">Amber Threshold *</label>
+                <FormGroup>
+                  <label htmlFor="amberThreshold">
+                    <LabelRow>
+                      <span>Amber Threshold *</span>
+                      <InfoHelp
+                        as={motion.div}
+                        onHoverStart={() => setShowAmberTip(true)}
+                        onHoverEnd={() => setShowAmberTip(false)}
+                        onFocus={() => setShowAmberTip(true)}
+                        onBlur={() => setShowAmberTip(false)}
+                      >
+                        <InfoIcon type="button" aria-label="Amber threshold help">i</InfoIcon>
+                        <AnimatePresence>
+                          {showAmberTip && (
+                            <Tooltip
+                              as={motion.div}
+                              key="tt-amber"
+                              initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                              animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.15, ease: 'easeOut' } }}
+                              exit={{ opacity: 0, y: 6, scale: 0.98, transition: { duration: 0.1, ease: 'easeIn' } }}
+                            >
+                              <strong>Amber threshold</strong> is a warning level indicating performance is approaching the target but not yet green.
+                            </Tooltip>
+                          )}
+                        </AnimatePresence>
+                      </InfoHelp>
+                    </LabelRow>
+                  </label>
                   <input
                     type="number"
                     id="amberThreshold"
@@ -186,15 +293,41 @@ const ThresholdForm = () => {
                     className={!thresholdValidation.isValid ? 'error' : ''}
                   />
                   {!thresholdValidation.isValid && (
-                    <div className="threshold-error">
-                      <span className="error-icon">⚠️</span>
+                    <ThresholdError>
+                      <ErrorIcon>⚠️</ErrorIcon>
                       {thresholdValidation.message}
-                    </div>
+                    </ThresholdError>
                   )}
-                </div>
+                </FormGroup>
 
-                <div className="form-group">
-                  <label htmlFor="direction">Direction *</label>
+                <FormGroup>
+                  <label htmlFor="direction">
+                    <LabelRow>
+                      <span>Direction *</span>
+                      <InfoHelp
+                        as={motion.div}
+                        onHoverStart={() => setShowDirectionTip(true)}
+                        onHoverEnd={() => setShowDirectionTip(false)}
+                        onFocus={() => setShowDirectionTip(true)}
+                        onBlur={() => setShowDirectionTip(false)}
+                      >
+                        <InfoIcon type="button" aria-label="Direction help">i</InfoIcon>
+                        <AnimatePresence>
+                          {showDirectionTip && (
+                            <Tooltip
+                              as={motion.div}
+                              key="tt-direction"
+                              initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                              animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.15, ease: 'easeOut' } }}
+                              exit={{ opacity: 0, y: 6, scale: 0.98, transition: { duration: 0.1, ease: 'easeIn' } }}
+                            >
+                              Choose whether <strong>higher</strong> values or <strong>lower</strong> values indicate better performance for this KPI.
+                            </Tooltip>
+                          )}
+                        </AnimatePresence>
+                      </InfoHelp>
+                    </LabelRow>
+                  </label>
                   <select
                     id="direction"
                     value={direction}
@@ -205,59 +338,49 @@ const ThresholdForm = () => {
                     <option value="higher">Higher is Better</option>
                     <option value="lower">Lower is Better</option>
                   </select>
-                </div>
-              </div>
-            </div>
+                </FormGroup>
+              </ThresholdSection>
+            </ConfigSection>
 
-            <div className="form-actions">
-              <button 
-                type="submit" 
-                className="submit-btn"
-                disabled={loading || !validation.isValid}
-              >
+            <Actions>
+              <SubmitBtn type="submit" disabled={loading || !validation.isValid}>
                 {loading ? 'Loading...' : 'Preview'}
-              </button>
-              
-              <button 
-                type="button" 
-                className="reset-btn"
-                onClick={resetForm}
-                disabled={loading}
-              >
+              </SubmitBtn>
+              <ResetBtn type="button" onClick={resetForm} disabled={loading}>
                 Reset
-              </button>
-            </div>
-          </form>
+              </ResetBtn>
+            </Actions>
+          </CardForm>
 
-          <div className="threshold-info">
+          <ThresholdInfo>
             <h3>Threshold Information</h3>
-            <div className="info-grid">
-              <div className="info-item green">
-                <div className="color-indicator"></div>
+            <InfoGrid>
+              <InfoItem>
+                <ColorIndicator $color="green" />
                 <span>Green: Performance meets or exceeds target</span>
-              </div>
-              <div className="info-item amber">
-                <div className="color-indicator"></div>
+              </InfoItem>
+              <InfoItem>
+                <ColorIndicator $color="amber" />
                 <span>Amber: Performance is approaching target</span>
-              </div>
-              <div className="info-item red">
-                <div className="color-indicator"></div>
+              </InfoItem>
+              <InfoItem>
+                <ColorIndicator $color="red" />
                 <span>Red: Performance is below amber threshold</span>
-              </div>
-            </div>
-          </div>
-        </div>
+              </InfoItem>
+            </InfoGrid>
+          </ThresholdInfo>
+        </FormSection>
 
-        <div className="data-section">
+        <DataSection>
           <CollectionDataTable 
             collectionName={selectedCollection}
             sampleData={sampleData}
             loading={sampleDataLoading}
             measurableFields={fields}
           />
-        </div>
-      </div>
-    </div>
+        </DataSection>
+      </Content>
+    </Page>
   );
 };
 
