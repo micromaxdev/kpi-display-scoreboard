@@ -3,15 +3,8 @@ import { motion } from 'framer-motion';
 import {
   PreviewPage as AnalysisPageContainer,
   Container,
-  Header,
   Card,
-  TopSection,
-  SummaryGrid,
-  SummaryCard,
-  ThresholdInfo,
   DataSection,
-  CategoryTabs,
-  CategoryTab,
   DataTable,
   TableHeader,
   TableRow,
@@ -29,8 +22,6 @@ const KPIAnalysisLayout = ({
   emptyStateTitle = "No Analysis Data Available",
   emptyStateMessage = "Please configure your threshold settings."
 }) => {
-  const [activeCategory, setActiveCategory] = React.useState('red');
-
   if (!analysisData) {
     return (
       <AnalysisPageContainer>
@@ -49,11 +40,6 @@ const KPIAnalysisLayout = ({
   }
 
   const { collection, thresholds, countsByCategory, topItems } = analysisData;
-  const totalCount = countsByCategory.total;
-
-  const getPercentage = (count) => {
-    return totalCount > 0 ? ((count / totalCount) * 100).toFixed(1) : '0';
-  };
 
   const categories = ['red', 'amber', 'green'];
   const categoryLabels = {
@@ -61,6 +47,61 @@ const KPIAnalysisLayout = ({
     amber: 'Needs Attention', 
     green: 'Good Performance'
   };
+
+  // Function to get dynamic category descriptions based on thresholds
+  const getCategoryDescription = (category) => {
+    const { thresholds } = analysisData;
+    
+    // Check if thresholds exist and have the required properties
+    if (!thresholds || !thresholds.direction || thresholds.green === undefined || thresholds.amber === undefined) {
+      // Fallback descriptions when thresholds are not available
+      const fallbackDescriptions = {
+        red: 'Records that require immediate attention and action. These are the most critical items that need to be addressed as soon as possible.',
+        amber: 'Records that need monitoring and may require attention soon. These items should be reviewed and addressed before they become critical.',
+        green: 'Records that are performing well and meeting expectations. These items are in good standing and require no immediate action.'
+      };
+      return fallbackDescriptions[category];
+    }
+    
+    const direction = thresholds.direction;
+    const greenThreshold = thresholds.green;
+    const amberThreshold = thresholds.amber;
+    
+    if (direction === 'higher') {
+      switch (category) {
+        case 'red':
+          return `Records with values < ${amberThreshold?.toLocaleString() || amberThreshold}. These require immediate attention.`;
+        case 'amber':
+          return `Records with values between ${amberThreshold?.toLocaleString() || amberThreshold} and ${greenThreshold?.toLocaleString() || greenThreshold}. These need monitoring.`;
+        case 'green':
+          return `Records with values >= ${greenThreshold?.toLocaleString() || greenThreshold}. These are performing well.`;
+        default:
+          return 'No description available.';
+      }
+    } else if (direction === 'lower') {
+      switch (category) {
+        case 'red':
+          return `Records with values > ${amberThreshold?.toLocaleString() || amberThreshold}. These require immediate attention.`;
+        case 'amber':
+          return `Records with values between ${greenThreshold?.toLocaleString() || greenThreshold} and ${amberThreshold?.toLocaleString() || amberThreshold}. These need monitoring.`;
+        case 'green':
+          return `Records with values <= ${greenThreshold?.toLocaleString() || greenThreshold}. These are performing well.`;
+        default:
+          return 'No description available.';
+      }
+    }
+    
+    return 'No description available.';
+  };
+
+  // Generate dynamic descriptions for each category
+  const categoryDescriptions = {
+    red: getCategoryDescription("red"),
+    amber: getCategoryDescription("amber"),
+    green: getCategoryDescription("green")
+  };
+
+  
 
   const formatCurrency = (value) => {
     if (value === null || value === undefined) return '-';
@@ -72,203 +113,313 @@ const KPIAnalysisLayout = ({
     }).format(value);
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: '2-digit'
-      });
-    } catch {
-      return dateString;
+  // Function to get all unique fields from data, excluding system fields
+  const getDynamicFields = (data) => {
+    if (!data || data.length === 0) return [];
+    
+    const excludedFields = [
+      '_id', 
+      '__v', 
+      'password', 
+      'createdAt', 
+      'updatedAt', 
+      'id',
+      'created_at',
+      'updated_at',
+      // Exclude score/comparison fields from display
+      'comparisonValue',
+      'score'
+    ];
+
+    const shouldExcludeField = (fieldName) => {
+      if (excludedFields.includes(fieldName)) return true;
+      
+      const lowercaseField = fieldName.toLowerCase();
+      if (lowercaseField.includes('password') || 
+          lowercaseField.includes('token') ||
+          lowercaseField.includes('secret') ||
+          lowercaseField.endsWith('_id') ||
+          lowercaseField.startsWith('_')) return true;
+          
+      return false;
+    };
+
+    const allFields = [
+      ...new Set(
+        data
+          .flatMap(Object.keys)
+          .filter((field) => !shouldExcludeField(field))
+      ),
+    ];
+
+    // Always put RAG first, then other fields
+    const ragField = 'ragCategory';
+    const otherFields = allFields.filter(field => field !== ragField);
+    
+    return [ragField, ...otherFields];
+  };
+
+  // Function to get grid template columns based on field count - using smaller columns
+  const getGridTemplateColumns = (fieldCount) => {
+    // Use slightly larger column sizes for readability
+    const ragColumn = '40px'; // RAG column
+    const standardColumns = Array(fieldCount - 1).fill('130px').join(' '); // Slightly bigger fixed width columns
+    return `${ragColumn} ${standardColumns}`;
+  };
+
+  // Function to format cell value
+  const formatCellValue = (value, fieldName) => {
+    if (value === null || value === undefined) return '-';
+    
+    // Special handling for RAG field
+    if (fieldName === 'ragCategory') {
+      return (
+        <div className={`rag-dot ${value}`} style={{ width: '10px', height: '10px' }}></div>
+      );
     }
+    
+    // Handle different data types
+    if (typeof value === 'object') {
+      if (value instanceof Date) return value.toLocaleDateString();
+      return JSON.stringify(value);
+    }
+    
+    if (typeof value === 'number') {
+      // Check if it looks like currency/amount - exclude comparisonValue
+      if ((fieldName.toLowerCase().includes('amount') || 
+           fieldName.toLowerCase().includes('price') ||
+           fieldName.toLowerCase().includes('cost')) &&
+          !fieldName.toLowerCase().includes('comparison')) {
+        return formatCurrency(value);
+      }
+      return value.toLocaleString();
+    }
+    
+    if (typeof value === 'string') {
+      if (value.length > 30) {
+        return value.substring(0, 30) + '...';
+      }
+      return value;
+    }
+    
+    return String(value);
+  };
+
+  // Function to get field display name
+  const getFieldDisplayName = (fieldName) => {
+    const displayNames = {
+      'ragCategory': 'RAG',
+      'customerName': 'Customer Name',
+      'custCode': 'Customer Code',
+      'customerCode': 'Customer Code',
+      'docNo': 'Document No',
+      'callId': 'Call ID',
+      'docDate': 'Document Date',
+      'inputDate': 'Input Date',
+      'dueDate': 'Due Date',
+      'quotedAmount': 'Quoted Amount',
+      'amount': 'Amount',
+      'salesEmployee': 'Sales Employee',
+      'subject': 'Subject',
+      'jobType': 'Job Type',
+      'comparisonValue': 'Score'
+    };
+    
+    return displayNames[fieldName] || fieldName.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+  };
+
+  const isMeasurementField = (fieldName) => {
+    if (!fieldName || !field) return false;
+    return String(fieldName).toLowerCase() === String(field).toLowerCase();
   };
 
   return (
     <AnalysisPageContainer>
-      <Container>
-        <Header>
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            {title}
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            {subtitle}
-          </motion.p>
-        </Header>
+      <Container style={{ maxWidth: '100%', padding: '0' }}>
 
-        {actionButtons}
-
-        <TopSection>
-          {/* Left side - Summary Cards */}
-          <Card
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h3 style={{ marginBottom: '1.5rem', color: '#333', fontSize: '1.5rem' }}>Performance Overview</h3>
-            <SummaryGrid>
-              <SummaryCard
-                $category="total"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                whileHover={{ scale: 1.05 }}
-              >
-                <h3>Total Records</h3>
-                <div className="count">{countsByCategory.total.toLocaleString()}</div>
-                <div className="percentage">100%</div>
-              </SummaryCard>
-
-              <SummaryCard
-                $category="green"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                whileHover={{ scale: 1.05 }}
-              >
-                <h3>Green</h3>
-                <div className="count">{countsByCategory.green.toLocaleString()}</div>
-                <div className="percentage">{getPercentage(countsByCategory.green)}%</div>
-              </SummaryCard>
-
-              <SummaryCard
-                $category="amber"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                whileHover={{ scale: 1.05 }}
-              >
-                <h3>Amber</h3>
-                <div className="count">{countsByCategory.amber.toLocaleString()}</div>
-                <div className="percentage">{getPercentage(countsByCategory.amber)}%</div>
-              </SummaryCard>
-
-              <SummaryCard
-                $category="red"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                whileHover={{ scale: 1.05 }}
-              >
-                <h3>Red</h3>
-                <div className="count">{countsByCategory.red.toLocaleString()}</div>
-                <div className="percentage">{getPercentage(countsByCategory.red)}%</div>
-              </SummaryCard>
-            </SummaryGrid>
-          </Card>
-
-          {/* Right side - Threshold Info */}
-          <Card
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            <ThresholdInfo>
-              <h3>Threshold Configuration</h3>
-              <div className="threshold-grid">
-                <div className="threshold-item">
-                  <div className="label">Collection</div>
-                  <div className="value">{collection}</div>
-                </div>
-                <div className="threshold-item">
-                  <div className="label">Field</div>
-                  <div className="value">{field}</div>
-                </div>
-                <div className="threshold-item">
-                  <div className="label">Green Threshold</div>
-                  <div className="value">{thresholds.green}</div>
-                </div>
-                <div className="threshold-item">
-                  <div className="label">Amber Threshold</div>
-                  <div className="value">{thresholds.amber}</div>
-                </div>
-                <div className="threshold-item">
-                  <div className="label">Direction</div>
-                  <div className="value">{thresholds.direction === 'lower' ? 'Lower is Better' : 'Higher is Better'}</div>
-                </div>
-              </div>
-            </ThresholdInfo>
-          </Card>
-        </TopSection>
-
-        {/* Bottom section - Data Table */}
+        {/* Full-width Data Table Section */}
         <Card
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
+          style={{ padding: '1.5rem', margin: '0' }}
         >
-          <DataSection>
-            <h3>Detailed Records</h3>
-            
-            <CategoryTabs>
-              {categories.map(category => (
-                <CategoryTab
-                  key={category}
-                  $active={activeCategory === category}
-                  onClick={() => setActiveCategory(category)}
-                >
-                  {categoryLabels[category]} ({countsByCategory[category]})
-                </CategoryTab>
-              ))}
-            </CategoryTabs>
 
-            <DataTable>
-              {topItems[activeCategory] && topItems[activeCategory].length > 0 ? (
-                <>
-                  <TableHeader>
-                    <div>Customer</div>
-                    <div>Doc No</div>
-                    <div>Doc Date</div>
-                    <div>Due Date</div>
-                    <div>Amount</div>
-                    <div>Category</div>
-                    <div>Score</div>
-                  </TableHeader>
-                  {topItems[activeCategory].map((item, index) => (
-                    <TableRow
-                      key={`${item.docNo}-${index}`}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                    >
-                      <TableCell className="customer-name">
-                        <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{item.customerCode}</div>
-                        <div style={{ fontSize: '0.8rem', color: '#666', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.customerName}>
-                          {item.customerName}
+          <DataSection>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between', 
+              gap: '1rem', 
+              flexWrap: 'wrap',
+              marginBottom: '0.5rem'
+            }}>
+              <h3 style={{ 
+                fontSize: '1.5rem',
+                fontWeight: '600',
+                color: '#2c3e50',
+                margin: 0
+              }}>
+                 {title} for "{collectionName?.toUpperCase()}" with measurement: "{field?.toUpperCase()}"
+              </h3>
+              <div>
+                {actionButtons}
+              </div>
+            </div>
+            
+            {/* Display all categories */}
+            {categories.map((category, categoryIndex) => {
+              const categoryData = topItems[category] || [];
+              const fields = getDynamicFields(categoryData);
+              const gridTemplateColumns = getGridTemplateColumns(fields.length);
+              
+              return (
+                <div key={category} style={{ marginBottom: '2rem' }}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: categoryIndex * 0.2 }}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '250px 1fr',
+                      gap: '1.5rem',
+                      alignItems: 'start'
+                    }}
+                  >
+                    {/* RAG Explanation Card */}
+                    <Card style={{ 
+                      padding: '1rem', 
+                      margin: '0',
+                      background: category === 'red' ? 'linear-gradient(135deg, #fff5f5, #fed7d7)' :
+                                 category === 'amber' ? 'linear-gradient(135deg, #fffbeb, #fef3c7)' :
+                                 'linear-gradient(135deg, #f0fff4, #c6f6d5)',
+                      border: `3px solid ${
+                        category === 'red' ? '#dc3545' :
+                        category === 'amber' ? '#ffc107' :
+                        '#28a745'
+                      }`
+                    }}>
+                      <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
+                        <div className={`rag-dot ${category}`} style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          margin: '0 auto 0.5rem',
+                          background: category === 'red' ? 'linear-gradient(135deg, #dc3545, #c82333)' :
+                                     category === 'amber' ? 'linear-gradient(135deg, #ffc107, #e0a800)' :
+                                     'linear-gradient(135deg, #28a745, #1e7e34)',
+                          border: `3px solid ${
+                            category === 'red' ? '#dc3545' :
+                            category === 'amber' ? '#ffc107' :
+                            '#28a745'
+                          }`,
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+                        }}></div>
+                        <h4 style={{
+                          fontSize: '1.1rem',
+                          fontWeight: '700',
+                          color: category === 'red' ? '#dc3545' :
+                                 category === 'amber' ? '#d97706' :
+                                 '#059669',
+                          marginBottom: '0.25rem'
+                        }}>
+                          {categoryLabels[category]}
+                        </h4>
+                        <div style={{
+                          fontSize: '1rem',
+                          fontWeight: '600',
+                          color: '#374151',
+                          marginBottom: '0.75rem'
+                        }}>
+                          {countsByCategory[category].toLocaleString()} Records
                         </div>
-                      </TableCell>
-                      <TableCell>{item.docNo || '-'}</TableCell>
-                      <TableCell>{formatDate(item.docDate)}</TableCell>
-                      <TableCell>{formatDate(item.dueDate)}</TableCell>
-                      <TableCell className="amount" $negative={item.amount < 0}>
-                        {formatCurrency(item.amount)}
-                      </TableCell>
-                      <TableCell className="category" $category={item.ragCategory}>
-                        <span className="badge">{item.ragCategory}</span>
-                      </TableCell>
-                      <TableCell className="comparison" $negative={item.comparisonValue < 0}>
-                        {item.comparisonValue || '-'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </>
-              ) : (
-                <EmptyState>
-                  <div className="icon">📄</div>
-                  <h3>No {categoryLabels[activeCategory]} Records</h3>
-                  <p>No records found in this category.</p>
-                </EmptyState>
-              )}
-            </DataTable>
+                      </div>
+                      <p style={{
+                        fontSize: '0.8rem',
+                        color: '#6b7280',
+                        lineHeight: '1.4',
+                        textAlign: 'center'
+                      }}>
+                        {categoryDescriptions[category]}
+                      </p>
+                    </Card>
+
+                    {/* Scrollable Data Table */}
+                    <div style={{ width: '100%', overflow: 'hidden' }}>
+                      <DataTable style={{ 
+                        width: '100%',
+                        maxHeight: '300px',
+                        fontSize: '0.75rem',
+                        overflowX: 'auto',
+                        overflowY: 'auto'
+                      }}>
+                        {categoryData.length > 0 ? (
+                          <div style={{ 
+                            minWidth: `${fields.length * 130}px`, // Ensure minimum width for all columns
+                            width: '100%'
+                          }}>
+                            <TableHeader style={{ 
+                              padding: '0.5rem',
+                              fontSize: '0.7rem',
+                              gridTemplateColumns: gridTemplateColumns,
+                              position: 'sticky',
+                              top: 0,
+                              zIndex: 10
+                            }}>
+                              {fields.map((fieldName, index) => (
+                                <div key={index} className={isMeasurementField(fieldName) ? 'measurable' : ''} style={{ 
+                                  padding: '0.25rem',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis'
+                                }}>
+                                  {getFieldDisplayName(fieldName)}
+                                </div>
+                              ))}
+                            </TableHeader>
+                            {categoryData.map((item, index) => (
+                              <TableRow
+                                key={`${item.callId || item.docNo || item._id || index}`}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.3, delay: index * 0.05 }}
+                                style={{ 
+                                  padding: '0.5rem',
+                                  gridTemplateColumns: gridTemplateColumns
+                                }}
+                              >
+                                {fields.map((fieldName, fieldIndex) => (
+                                  <TableCell 
+                                    key={fieldIndex} 
+                                    style={{ 
+                                      fontSize: '0.7rem',
+                                      padding: '0.25rem',
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis'
+                                    }}
+                                    className={`${fieldName === 'ragCategory' ? 'rag-indicator' : ''} ${isMeasurementField(fieldName) ? 'measurable' : ''}`}
+                                    title={item[fieldName] ? String(item[fieldName]) : '-'}
+                                  >
+                                    {formatCellValue(item[fieldName], fieldName)}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            ))}
+                          </div>
+                        ) : (
+                          <EmptyState style={{ padding: '2rem' }}>
+                            <div className="icon" style={{ fontSize: '2rem' }}>📄</div>
+                            <h3 style={{ fontSize: '1rem' }}>No {categoryLabels[category]} Records</h3>
+                            <p style={{ fontSize: '0.8rem' }}>{categoryDescriptions[category]}</p>
+                          </EmptyState>
+                        )}
+                      </DataTable>
+                    </div>
+                  </motion.div>
+                </div>
+              );
+            })}
           </DataSection>
         </Card>
       </Container>

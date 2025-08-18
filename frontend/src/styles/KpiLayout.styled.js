@@ -4,37 +4,69 @@ import { motion } from 'framer-motion';
 export const PreviewPage = styled.div`
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem;
+  padding: 1rem;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.03)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    pointer-events: none;
+  }
 `;
 
 export const Container = styled.div`
-  max-width: 1400px;
+  max-width: 100%;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 `;
 
 export const Header = styled.div`
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
   color: white;
 
   h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-    font-weight: 700;
+    font-size: 2.8rem;
+    margin-bottom: 0.75rem;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
 
   p {
-    font-size: 1.1rem;
-    opacity: 0.9;
+    font-size: 1.2rem;
+    opacity: 0.95;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
   }
 `;
 
 export const Card = styled(motion.div)`
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+  }
 `;
 
 export const ActionButtons = styled.div`
@@ -64,8 +96,8 @@ export const BackButton = styled(motion.button)`
 export const TopSection = styled.div`
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  gap: 2.5rem;
+  margin-bottom: 2.5rem;
   
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
@@ -75,7 +107,7 @@ export const TopSection = styled.div`
 export const SummaryGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: 2rem;
 `;
 
 export const SummaryCard = styled(motion.div)`
@@ -89,11 +121,12 @@ export const SummaryCard = styled(motion.div)`
     }
   }};
   color: white;
-  padding: 1.5rem;
-  border-radius: 12px;
+  padding: 2rem;
+  border-radius: 16px;
   text-align: center;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 
   &::before {
     content: '';
@@ -112,57 +145,72 @@ export const SummaryCard = styled(motion.div)`
   }
 
   h3 {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-weight: 600;
   }
 
   .count {
-    font-size: 2.5rem;
-    font-weight: 700;
+    font-size: 2.8rem;
+    font-weight: 800;
     margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .percentage {
-    font-size: 0.9rem;
+    font-size: 1rem;
     opacity: 0.9;
+    font-weight: 500;
   }
 `;
 
 export const ThresholdInfo = styled.div`
-  background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 
   h3 {
-    margin-bottom: 1rem;
-    color: #333;
-    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: center;
   }
 
   .threshold-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
   .threshold-item {
     background: white;
-    padding: 1rem;
-    border-radius: 8px;
+    padding: 1.25rem;
+    border-radius: 12px;
     border-left: 4px solid #667eea;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
 
     .label {
       font-weight: 600;
       color: #555;
       margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .value {
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       font-weight: 700;
-      color: #333;
+      color: #2c3e50;
     }
   }
 `;
@@ -170,20 +218,23 @@ export const ThresholdInfo = styled.div`
 export const DataSection = styled.div`
   h3 {
     margin-bottom: 1.5rem;
-    color: #333;
-    font-size: 1.5rem;
+    color: #2c3e50;
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: center;
   }
 `;
 
 export const CategoryTabs = styled.div`
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
+  justify-content: center;
 `;
 
 export const CategoryTab = styled.button`
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 1.75rem;
   border: none;
   border-radius: 25px;
   background: ${props => props.$active ? '#667eea' : '#e9ecef'};
@@ -191,46 +242,85 @@ export const CategoryTab = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
   &:hover {
     background: ${props => props.$active ? '#5a6fd8' : '#dee2e6'};
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   }
 `;
 
 export const DataTable = styled.div`
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  max-height: 600px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  min-height: 120px;
+  max-height: clamp(120px, 24vh, 360px);
+  overflow-x: auto;
   overflow-y: auto;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  width: 100%;
+  font-size: clamp(0.85rem, 0.55vw + 0.5rem, 1rem);
+  
+  /* Custom scrollbar styling */
+  &::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
 `;
 
 export const TableHeader = styled.div`
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 0.8fr 1fr;
-  gap: 1rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  font-weight: 600;
-  color: #495057;
-  border-bottom: 1px solid #dee2e6;
+  gap: 0.5rem;
+  padding: clamp(0.45rem, 0.4vw + 0.3rem, 0.7rem);
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  font-weight: 700;
+  color: #2c3e50;
+  border-bottom: 2px solid #dee2e6;
   position: sticky;
   top: 0;
   z-index: 10;
+  font-size: clamp(0.9rem, 0.6vw + 0.55rem, 1.05rem);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: fit-content;
+
+  .measurable {
+    background: rgba(102, 126, 234, 0.12);
+    border-radius: 8px;
+    color: #2c3e50;
+  }
 `;
 
 export const TableRow = styled(motion.div)`
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 0.8fr 1fr;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 0.5rem;
+  padding: clamp(0.45rem, 0.4vw + 0.3rem, 0.7rem);
   border-bottom: 1px solid #f8f9fa;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  position: relative;
+  min-width: fit-content;
 
   &:hover {
-    background-color: #f8f9fa;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    transform: translateX(4px);
   }
 
   &:last-child {
@@ -239,61 +329,76 @@ export const TableRow = styled(motion.div)`
 `;
 
 export const TableCell = styled.div`
-  font-size: 0.9rem;
+  font-size: clamp(0.85rem, 0.55vw + 0.5rem, 1rem);
   color: #495057;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  padding: clamp(0.25rem, 0.3vw + 0.15rem, 0.45rem);
+  min-width: 0;
 
-  &.customer-name {
-    font-weight: 500;
+  &.measurable {
+    background: rgba(102, 126, 234, 0.08);
+    border-left: 3px solid #667eea;
   }
+
+  &.rag-indicator {
+    justify-content: center;
+    
+    .rag-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      position: relative;
+      flex-shrink: 0;
+      
+      &.red { background: linear-gradient(135deg, #dc3545, #c82333); border-color: #dc3545; }
+      &.amber { background: linear-gradient(135deg, #ffc107, #e0a800); border-color: #ffc107; }
+      &.green { background: linear-gradient(135deg, #28a745, #1e7e34); border-color: #28a745; }
+      
+      &::after {
+        content: '';
+        position: absolute;
+        top: 1px; left: 1px; right: 1px; bottom: 1px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+      }
+    }
+  }
+
+  &.customer-name { font-weight: 500; }
 
   &.amount {
     font-weight: 600;
     color: ${props => props.$negative ? '#dc3545' : '#28a745'};
     font-family: 'Monaco', 'Menlo', monospace;
   }
-
-  &.category {
-    .badge {
-      padding: 0.25rem 0.75rem;
-      border-radius: 12px;
-      text-align: center;
-      color: white;
-      font-weight: 600;
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      background: ${props => {
-        switch(props.$category) {
-          case 'green': return '#28a745';
-          case 'amber': return '#ffc107';
-          case 'red': return '#dc3545';
-          default: return '#6c757d';
-        }
-      }};
-    }
-  }
-
-  &.comparison {
-    font-family: 'Monaco', 'Menlo', monospace;
-    font-weight: 500;
-    color: ${props => props.$negative ? '#dc3545' : '#28a745'};
-  }
 `;
 
 export const EmptyState = styled.div`
   text-align: center;
-  padding: 3rem;
+  padding: 4rem;
   color: #6c757d;
 
   .icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.7;
   }
 
   h3 {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     color: #495057;
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+
+  p {
+    font-size: 1rem;
+    opacity: 0.8;
   }
 `;

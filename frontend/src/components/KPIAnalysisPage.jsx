@@ -8,8 +8,8 @@ const ActionButtons = styled.div`
 `;
 
 const BackButton = styled(motion.button)`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: rgba(255, 255, 255, 0.9);
+  color: #667eea;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
@@ -20,10 +20,13 @@ const BackButton = styled(motion.button)`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 
   &:hover {
+    background: rgba(255, 255, 255, 1);
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   }
 
   &:active {
@@ -47,8 +50,8 @@ const KPIAnalysisPage = () => {
     <ActionButtons>
       <BackButton
         onClick={handleBackToForm}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
