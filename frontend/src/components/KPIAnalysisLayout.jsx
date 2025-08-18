@@ -161,9 +161,9 @@ const KPIAnalysisLayout = ({
 
   // Function to get grid template columns based on field count - using smaller columns
   const getGridTemplateColumns = (fieldCount) => {
-    // Use slightly larger column sizes for readability
-    const ragColumn = '40px'; // RAG column
-    const standardColumns = Array(fieldCount - 1).fill('130px').join(' '); // Slightly bigger fixed width columns
+    // Responsive column sizing: fixed RAG column + flexible data columns
+    const ragColumn = '40px';
+    const standardColumns = Array(fieldCount - 1).fill('minmax(130px, 1fr)').join(' ');
     return `${ragColumn} ${standardColumns}`;
   };
 
@@ -255,7 +255,7 @@ const KPIAnalysisLayout = ({
               marginBottom: '0.5rem'
             }}>
               <h3 style={{ 
-                fontSize: '1.5rem',
+                fontSize: 'clamp(1.1rem, 1.2vw + 0.6rem, 2rem)',
                 fontWeight: '600',
                 color: '#2c3e50',
                 margin: 0
@@ -348,7 +348,7 @@ const KPIAnalysisLayout = ({
                     <div style={{ width: '100%', overflow: 'hidden' }}>
                       <DataTable style={{ 
                         width: '100%',
-                        maxHeight: '300px',
+                        maxHeight: '250px',
                         fontSize: '0.75rem',
                         overflowX: 'auto',
                         overflowY: 'auto'

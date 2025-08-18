@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 export const PreviewPage = styled.div`
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 1rem;
+  padding: clamp(0.5rem, 1.5vw, 2rem);
   position: relative;
   
   &::before {
@@ -24,6 +24,7 @@ export const Container = styled.div`
   margin: 0 auto;
   position: relative;
   z-index: 1;
+  padding: 0;
 `;
 
 export const Header = styled.div`
@@ -257,8 +258,8 @@ export const DataTable = styled.div`
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-  min-height: 120px;
-  max-height: clamp(120px, 24vh, 360px);
+  min-height: clamp(100px, 18vh, 180px);
+  max-height: clamp(160px, 28vh, 420px);
   overflow-x: auto;
   overflow-y: auto;
   border: 1px solid rgba(0, 0, 0, 0.05);
@@ -266,24 +267,10 @@ export const DataTable = styled.div`
   font-size: clamp(0.85rem, 0.55vw + 0.5rem, 1rem);
   
   /* Custom scrollbar styling */
-  &::-webkit-scrollbar {
-    height: 8px;
-    width: 8px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-  }
-  
-  &::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-  }
+  &::-webkit-scrollbar { height: 8px; width: 8px; }
+  &::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+  &::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+  &::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 `;
 
 export const TableHeader = styled.div`
