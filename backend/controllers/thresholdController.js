@@ -26,7 +26,8 @@ export async function getThreshold(req, res) {
 // Create or update a threshold
 export async function setThreshold(req, res) {
     const { collectionName, field, green, amber, direction } = req.body;
-    if (!collectionName || !field || !green || !amber || !direction) {
+    if (!collectionName || !field || green == null || amber == null || !direction) {
+        console.error('Missing required fields for threshold:', { collectionName, field, green, amber, direction });
         return res.status(400).json({ success: false, message: 'All fields are required' });
     }
     const updated = await thresholdService.setThreshold({ collectionName, field, green, amber, direction });

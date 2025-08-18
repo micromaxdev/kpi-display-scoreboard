@@ -17,8 +17,11 @@ connectDB();
 // Middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(cors());
-
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 // Basic Hello World route
 app.get('/', (req, res) => {
   res.json({ message: 'Hello World! Welcome to the API' });
