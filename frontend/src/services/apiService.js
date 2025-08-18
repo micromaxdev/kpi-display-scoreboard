@@ -108,23 +108,22 @@ export const fetchCollectionSampleData = async (collectionName) => {
  */
 export const saveThreshold = async (thresholdData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/threshold-api/`, {
+    const requestBody = {
+      collectionName: thresholdData.collectionName,
+      field: thresholdData.field,
+      green: thresholdData.green,
+      amber: thresholdData.amber,
+      direction: thresholdData.direction
+    };
+    const response = await fetch(`${API_BASE_URL}/threshold-api`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        collectionName: thresholdData.collectionName,
-        field: thresholdData.field,
-        green: parseFloat(thresholdData.green),
-        amber: parseFloat(thresholdData.amber),
-        direction: thresholdData.direction
-      }),
+      body: JSON.stringify(requestBody),
     });
-
-    const data = await response.json();
     
-    console.log('Threshold save response:', data);
+    const data = await response.json();
     
     return {
       success: data.success,
@@ -195,5 +194,31 @@ export const fetchThresholdsByCollection = async (collectionName) => {
       thresholds: [],
       error: 'Error fetching collection thresholds'
     };
+  }
+};
+
+/**
+ * Calls the analyze API with given parameters
+ * @param {{collectionName: string, field: string, greenThreshold: string|number, amberThreshold: string|number, direction: 'higher'|'lower'}} payload
+ * @returns {Promise<object>} - API response from analyze
+ */
+export const analyzeKPIData = async ({ collectionName, field, greenThreshold, amberThreshold, direction }) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/kpi-api/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        collectionName,
+        field,
+        greenThreshold,
+        amberThreshold,
+        direction,
+      }),
+    });
+    const data = await response.json();
+    return { success: data.success !== false, data, error: null };
+  } catch (error) {
+    console.error('Error calling analyze API:', error);
+    return { success: false, data: null, error: error.message };
   }
 };

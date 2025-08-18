@@ -57,7 +57,7 @@ const ThresholdForm = () => {
     updateField,
     resetForm,
     clearMessage,
-    handleSubmit,
+    handlePreview,
     validation
   } = useThresholdFormWithData();
 
@@ -105,7 +105,7 @@ const ThresholdForm = () => {
 
       <Content>
         <FormSection>
-          <CardForm onSubmit={handleSubmit} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <CardForm onSubmit={handlePreview} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             {/* Collection Selection - Full Width */}
             <CollectionSection>
               <FormGroup>
@@ -344,7 +344,7 @@ const ThresholdForm = () => {
 
             <Actions>
               <SubmitBtn type="submit" disabled={loading || !validation.isValid}>
-                {loading ? 'Loading...' : 'Preview'}
+                {loading ? 'Processing...' : 'Preview KPI Data'}
               </SubmitBtn>
               <ResetBtn type="button" onClick={resetForm} disabled={loading}>
                 Reset

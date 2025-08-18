@@ -2,7 +2,8 @@
  * Custom hooks for threshold form management
  */
 import { useState, useEffect } from 'react';
-import { fetchCollections, fetchCollectionFields, saveThreshold, fetchCollectionSampleData } from '../services/apiService';
+import { useNavigate } from 'react-router-dom';
+import { fetchCollections, fetchCollectionFields, saveThreshold, fetchCollectionSampleData, analyzeKPIData } from '../services/apiService';
 import { filterMeasurableFields } from '../utils/fieldUtils';
 import { validateThresholdForm, createMessage, getInitialFormState, checkThresholds } from '../utils/formUtils';
 
@@ -103,7 +104,7 @@ export const useCollectionFields = (selectedCollection) => {
 export const useCollectionSampleData = (selectedCollection) => {
   const [sampleData, setSampleData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); 
 
   const loadSampleData = async (collectionName) => {
     if (!collectionName) {
@@ -144,7 +145,25 @@ export const useCollectionSampleData = (selectedCollection) => {
  * @returns {object} - Form state and handlers
  */
 export const useThresholdForm = () => {
-  const [formData, setFormData] = useState(getInitialFormState());
+  const navigate = useNavigate();
+  
+  // Function to get initial form state with localStorage persistence
+  const getPersistedFormState = () => {
+    try {
+      const saved = localStorage.getItem('kpi-threshold-form-data');
+      if (saved) {
+        const parsedData = JSON.parse(saved);
+        console.log('Restored form data from localStorage:', parsedData);
+        return parsedData;
+      }
+    } catch (error) {
+      console.warn('Failed to restore form data from localStorage:', error);
+    }
+    console.log('No saved data found, using initial state');
+    return getInitialFormState();
+  };
+
+  const [formData, setFormData] = useState(getPersistedFormState());
   const [message, setMessage] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
   const [thresholdValidation, setThresholdValidation] = useState({ isValid: true, message: '' });
@@ -171,6 +190,16 @@ export const useThresholdForm = () => {
     validateThresholds();
   }, [formData.greenThreshold, formData.amberThreshold, formData.direction]);
 
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('kpi-threshold-form-data', JSON.stringify(formData));
+      console.log('Form data saved to localStorage:', formData);
+    } catch (error) {
+      console.warn('Failed to save form data to localStorage:', error);
+    }
+  }, [formData]);
+
   // Update individual form fields
   const updateField = (fieldName, value) => {
     setFormData(prev => ({
@@ -181,8 +210,16 @@ export const useThresholdForm = () => {
 
   // Reset form to initial state
   const resetForm = () => {
-    setFormData(getInitialFormState());
+    const initialState = getInitialFormState();
+    setFormData(initialState);
     setMessage({ type: '', text: '' });
+    // Clear localStorage when resetting
+    try {
+      localStorage.removeItem('kpi-threshold-form-data');
+      console.log('Form data cleared from localStorage');
+    } catch (error) {
+      console.warn('Failed to clear form data from localStorage:', error);
+    }
   };
 
   // Clear messages
@@ -191,29 +228,57 @@ export const useThresholdForm = () => {
   };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handlePreview = async (e) => {
     e.preventDefault();
     
     // Validate form
     const validation = validateThresholdForm(formData);
+    
+    console.log('Form data:', formData);
+    console.log('Validation result:', validation);
     
     if (!validation.isValid) {
       setMessage(createMessage('error', validation.errors.join(', ')));
       return;
     }
 
-    // Submit to API
     setLoading(true);
-    const result = await saveThreshold(validation.values);
     
-    if (result.success) {
-      setMessage(createMessage('success', result.message));
-      resetForm();
-    } else {
-      setMessage(createMessage('error', result.message));
+    try {
+      // Analyze KPI data
+      const analysisData = {
+        collectionName: validation.values.collectionName,
+        field: validation.values.field,
+        greenThreshold: parseFloat(validation.values.green),
+        amberThreshold: parseFloat(validation.values.amber),
+        direction: validation.values.direction
+      };
+
+      console.log('Analysis data being sent:', analysisData);
+      
+      const analysisResult = await analyzeKPIData(analysisData);
+      
+      if (!analysisResult.success) {
+        setMessage(createMessage('error', analysisResult.error || 'Failed to analyze KPI data'));
+        setLoading(false);
+        return;
+      }
+
+      // Step 3: Navigate to preview page with results
+      navigate('/preview', {
+        state: {
+          analysisData: analysisResult.data, // Extract the actual data from the wrapper
+          field: validation.values.field,
+          collectionName: validation.values.collectionName
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error in form submission:', error);
+      setMessage(createMessage('error', 'An unexpected error occurred'));
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return {
@@ -224,7 +289,7 @@ export const useThresholdForm = () => {
     updateField,
     resetForm,
     clearMessage,
-    handleSubmit,
+    handlePreview,
     validation: validateThresholdForm(formData)
   };
 };
@@ -239,12 +304,28 @@ export const useThresholdFormWithData = () => {
   const fieldsHook = useCollectionFields(formHook.formData.selectedCollection);
   const sampleDataHook = useCollectionSampleData(formHook.formData.selectedCollection);
 
-  // When collection changes, reset field selection
+  // When collection changes, reset field selection only if the current field is not valid for the new collection
   useEffect(() => {
-    if (formHook.formData.selectedCollection) {
-      formHook.updateField('selectedField', '');
+    if (formHook.formData.selectedCollection && fieldsHook.fields.length > 0) {
+      const currentField = formHook.formData.selectedField;
+      const isFieldValid = fieldsHook.fields.some(field => field.name === currentField);
+      
+      console.log('Field validation check:', {
+        collection: formHook.formData.selectedCollection,
+        currentField,
+        availableFields: fieldsHook.fields.map(f => f.name),
+        isFieldValid
+      });
+      
+      // Only reset field if it's not valid for the current collection
+      if (currentField && !isFieldValid) {
+        console.log('Field', currentField, 'is not valid for collection', formHook.formData.selectedCollection, '. Resetting field selection.');
+        formHook.updateField('selectedField', '');
+      } else if (currentField && isFieldValid) {
+        console.log('Field', currentField, 'is valid for collection', formHook.formData.selectedCollection, '. Keeping field selection.');
+      }
     }
-  }, [formHook.formData.selectedCollection]);
+  }, [formHook.formData.selectedCollection, fieldsHook.fields]);
 
   // Combine loading states
   const isLoading = formHook.loading || collectionsHook.loading || fieldsHook.loading;
