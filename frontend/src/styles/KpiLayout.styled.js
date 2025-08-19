@@ -389,3 +389,46 @@ export const EmptyState = styled.div`
     opacity: 0.8;
   }
 `;
+// Styled component for last updated timestamp
+export const LastUpdatedTimestamp = styled.div`
+  position: fixed;
+  top: clamp(40px, 2vh, 40px);
+  right: clamp(20px, 3vw, 70px);
+  color: black;
+  font-size: clamp(0.75rem, 0.5vw + 0.4rem, 0.85rem);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  z-index: 1000;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  min-width: clamp(120px, 15vw, 180px);
+  max-width: clamp(180px, 20vw, 250px);
+  
+  @media (max-width: 768px) {
+    top: clamp(15px, 2vh, 25px);
+    right: clamp(10px, 2vw, 20px);
+    font-size: clamp(0.7rem, 1.2vw, 0.8rem);
+    min-width: clamp(100px, 20vw, 150px);
+  }
+  
+  @media (max-width: 480px) {
+    top: 10px;
+    right: 10px;
+    font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+    min-width: clamp(90px, 25vw, 130px);
+  }
+  
+  .label {
+    opacity: 0.8;
+    margin-right: clamp(4px, 0.3vw, 6px);
+  }
+  
+  .time {
+    font-weight: 500;
+  }
+  
+  .date {
+    font-size: clamp(0.65rem, 0.4vw + 0.35rem, 0.75rem);
+    opacity: 0.9;
+    margin-top: clamp(1px, 0.1vw, 2px);
+  }
+`;
