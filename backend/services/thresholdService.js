@@ -8,6 +8,10 @@ export async function getThreshold(collectionName, field) {
     return Threshold.findOne({ collectionName, field }, '-__v');
 }
 
+export async function getThresholdById(id) {
+    return Threshold.findById(id, '-__v');
+}
+
 export async function setThreshold({ collectionName, field, green, amber, direction }) {
     return Threshold.findOneAndUpdate(
         { collectionName, field },
