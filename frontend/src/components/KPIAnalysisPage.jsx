@@ -1,25 +1,97 @@
-import { motion } from 'framer-motion';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import KPIAnalysisLayout from './KPIAnalysisLayout';
-import styled from 'styled-components';
+import { fetchDisplayConfig, analyzeKPIData } from '../services/apiService';
 
 const KPIAnalysisPage = () => {
-  const location = useLocation();
+  const { displayName } = useParams();
   
-  // Get analysis data from navigation state
-  const { analysisData, field, collectionName } = location.state || {};
-  
+  const [content, setContent] = useState(() => {
+    const saved = localStorage.getItem(`displayContent_${displayName}`);
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        // Fetch display configuration
+        const displayRes = await fetchDisplayConfig(displayName);
+        
+        if (displayRes.success && displayRes.display) {
+          const display = displayRes.display;
+          
+          // Use the first threshold for analysis
+          if (display.thresholdIds && display.thresholdIds.length > 0) {
+            const firstThreshold = display.thresholdIds[0];
+            
+            // Analyze data using the first threshold
+            const analysisRes = await analyzeKPIData({
+              collectionName: firstThreshold.collectionName,
+              field: firstThreshold.field,
+              greenThreshold: firstThreshold.green,
+              amberThreshold: firstThreshold.amber,
+              direction: firstThreshold.direction
+            });
+            
+            if (analysisRes.success) {
+              const contentData = {
+                display: display,
+                analysisData: analysisRes.data,
+                currentThreshold: firstThreshold,
+                lastUpdated: new Date().toISOString()
+              };
+              
+              setContent(contentData);
+              localStorage.setItem(`displayContent_${displayName}`, JSON.stringify(contentData));
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Fetch exception:', err);
+      }
+    };
+
+    fetchContent();
+    
+    // Set up polling based on the time from display config
+    let interval;
+    if (content?.display?.time) {
+      interval = setInterval(fetchContent, content.display.time * 1000);
+    } else {
+      // Default polling every 30 seconds if no time specified
+      interval = setInterval(fetchContent, 30000);
+    }
+
+    return () => clearInterval(interval);
+  }, [displayName, content?.display?.time]);
+
+  if (!content) {
+    return (
+      <KPIAnalysisLayout
+        title="Loading..."
+        subtitle={`Loading display: ${displayName || 'N/A'}`}
+        analysisData={null}
+        field=""
+        collectionName=""
+        actionButtons={null}
+        emptyStateTitle="Loading Display"
+        emptyStateMessage="Please wait while we fetch your display configuration..."
+      />
+    );
+  }
+
+  const { display, analysisData, currentThreshold } = content;
 
   return (
     <KPIAnalysisLayout
-      title="KPI Analysis Results"
-      subtitle={`Detailed analysis of your thresholds | Collection: ${collectionName || 'N/A'} | Field: ${field || 'N/A'}`}
+      title={`KPI Dashboard: ${displayName}`}
+      subtitle={`Collection: ${currentThreshold?.collectionName || 'N/A'} | Field: ${currentThreshold?.field || 'N/A'} | Polling: ${display?.time || 30}s`}
       analysisData={analysisData}
-      field={field}
-      collectionName={collectionName}
-      actionButtons={actionButtons}
+      field={currentThreshold?.field}
+      collectionName={currentThreshold?.collectionName}
+      actionButtons={null}
       emptyStateTitle="No Analysis Data Available"
-      emptyStateMessage="Please go back to the form and submit your threshold configuration."
+      emptyStateMessage="No data could be analyzed for this display configuration."
     />
   );
 };

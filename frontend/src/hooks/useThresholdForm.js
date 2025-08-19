@@ -254,7 +254,6 @@ export const useThresholdForm = () => {
           amber: parseFloat(validation.values.amber),
           direction: validation.values.direction
         };
-        console.log('Threshold data being saved:', thresholdData);
 
         const saveResult = await saveThreshold(thresholdData);
         if (!saveResult.success) {
@@ -262,7 +261,6 @@ export const useThresholdForm = () => {
           setLoading(false);
           return;
         }
-        console.log('Save Result: ', saveResult)
         ///////////////////////////////////////////
         // Save Display as well with thresholdID //
         ///////////////////////////////////////////
@@ -271,11 +269,7 @@ export const useThresholdForm = () => {
           thresholdId: saveResult.data._id // Assuming saveResult contains the saved threshold data
         };
 
-        console.log('Display config being saved:', displayConfig);
-        
         const saveDisplay = await saveDisplayConfig(displayConfig);
-
-        console.log('Display save result:', saveDisplay);
       }
 
       // Analyze KPI data
@@ -286,8 +280,6 @@ export const useThresholdForm = () => {
         amberThreshold: parseFloat(validation.values.amber),
         direction: validation.values.direction
       };
-
-      console.log('Analysis data being sent:', analysisData);
 
       const analysisResult = await analyzeKPIData(analysisData);
 

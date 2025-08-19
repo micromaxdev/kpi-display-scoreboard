@@ -254,3 +254,28 @@ export const analyzeKPIData = async ({ collectionName, field, greenThreshold, am
     return { success: false, data: null, error: error.message };
   }
 };
+
+/**
+ * Fetches display configuration by display name
+ * @param {string} displayName - Name of the display
+ * @returns {Promise<object>} - API response with display data and thresholds
+ */
+export const fetchDisplayConfig = async (displayName) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/display-api/${displayName}`);
+    const data = await response.json();
+    
+    return {
+      success: data.success,
+      display: data.display || null,
+      error: data.error || null,
+    };
+  } catch (error) {
+    console.error('Error fetching display config:', error);
+    return {
+      success: false,
+      display: null,
+      error: 'Error connecting to server',
+    };
+  }
+};

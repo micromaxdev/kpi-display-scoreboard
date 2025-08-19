@@ -10,7 +10,7 @@ function App() {
       <Routes>
         <Route path="/" element={<ThresholdForm />} />
         <Route path="/preview" element={<PreviewPage />} />
-        <Route path="/analyze" element={<AnalyzePage />} />
+        <Route path="/:displayName" element={<AnalyzePage />} />
       </Routes>
     </BrowserRouter>
   )
