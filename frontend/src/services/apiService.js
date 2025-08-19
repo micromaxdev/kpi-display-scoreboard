@@ -142,6 +142,38 @@ export const saveThreshold = async (thresholdData) => {
   }
 };
 
+export const saveDisplayConfig = async (displayData) => {
+  try {
+    const requestBody = {
+      displayName: displayData.displayName,
+      time: displayData.time || 30,
+      thresholdId: displayData.thresholdId,
+    };
+    const response = await fetch(`${API_BASE_URL}/display-api/save`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+    const data = await response.json();
+
+    return {
+      success: data.success,
+      message: data.message || (data.success ? 'Display configuration saved successfully!' : 'Failed to save display configuration'),
+      data: data.display || null,
+      error: null
+    };
+  } catch (error) {
+    console.error('Error saving display configuration:', error);
+    return {
+      success: false,
+      message: 'Error connecting to server',
+      data: null,
+      error: error.message
+    };
+  }
+}
 /**
  * Fetches existing threshold for a specific collection and field
  * @param {string} collectionName - Name of the collection

@@ -3,7 +3,7 @@
  */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchCollections, fetchCollectionFields, saveThreshold, fetchCollectionSampleData, analyzeKPIData } from '../services/apiService';
+import { fetchCollections, fetchCollectionFields, saveThreshold, fetchCollectionSampleData, analyzeKPIData, saveDisplayConfig } from '../services/apiService';
 import { filterMeasurableFields } from '../utils/fieldUtils';
 import { validateThresholdForm, createMessage, getInitialFormState, checkThresholds } from '../utils/formUtils';
 
@@ -254,18 +254,28 @@ export const useThresholdForm = () => {
           amber: parseFloat(validation.values.amber),
           direction: validation.values.direction
         };
-
         console.log('Threshold data being saved:', thresholdData);
 
         const saveResult = await saveThreshold(thresholdData);
-        ///////////////////////////////////////////
-        // Save Display as well with thresholdID //
-        ///////////////////////////////////////////
         if (!saveResult.success) {
           setMessage(createMessage('error', saveResult.message || 'Failed to save threshold'));
           setLoading(false);
           return;
         }
+        console.log('Save Result: ', saveResult)
+        ///////////////////////////////////////////
+        // Save Display as well with thresholdID //
+        ///////////////////////////////////////////
+        const displayConfig = {
+          displayName: "dashboard",
+          thresholdId: saveResult.data._id // Assuming saveResult contains the saved threshold data
+        };
+
+        console.log('Display config being saved:', displayConfig);
+        
+        const saveDisplay = await saveDisplayConfig(displayConfig);
+
+        console.log('Display save result:', saveDisplay);
       }
 
       // Analyze KPI data
