@@ -69,25 +69,49 @@ const KPIAnalysisLayout = ({
     
     if (direction === 'higher') {
       switch (category) {
-        case 'red':
-          return `Records with values < ${amberThreshold?.toLocaleString() || amberThreshold}. These require immediate attention.`;
-        case 'amber':
-          return `Records with values between ${amberThreshold?.toLocaleString() || amberThreshold} and ${greenThreshold?.toLocaleString() || greenThreshold}. These need monitoring.`;
-        case 'green':
-          return `Records with values >= ${greenThreshold?.toLocaleString() || greenThreshold}. These are performing well.`;
-        default:
-          return 'No description available.';
+      case 'red':
+        return (
+        <>
+          Records with values &lt; <strong>{amberThreshold?.toLocaleString() || amberThreshold}</strong>. These require immediate attention.
+        </>
+        );
+      case 'amber':
+        return (
+        <>
+          Records with values between <strong>{amberThreshold?.toLocaleString() || amberThreshold}</strong> and <strong>{greenThreshold?.toLocaleString() || greenThreshold}</strong>. These need monitoring.
+        </>
+        );
+      case 'green':
+        return (
+        <>
+          Records with values &ge; <strong>{greenThreshold?.toLocaleString() || greenThreshold}</strong>. These are performing well.
+        </>
+        );
+      default:
+        return 'No description available.';
       }
     } else if (direction === 'lower') {
       switch (category) {
-        case 'red':
-          return `Records with values > ${amberThreshold?.toLocaleString() || amberThreshold}. These require immediate attention.`;
-        case 'amber':
-          return `Records with values between ${greenThreshold?.toLocaleString() || greenThreshold} and ${amberThreshold?.toLocaleString() || amberThreshold}. These need monitoring.`;
-        case 'green':
-          return `Records with values <= ${greenThreshold?.toLocaleString() || greenThreshold}. These are performing well.`;
-        default:
-          return 'No description available.';
+      case 'red':
+        return (
+        <>
+          Records with values &gt; <strong>{amberThreshold?.toLocaleString() || amberThreshold}</strong>. These require immediate attention.
+        </>
+        );
+      case 'amber':
+        return (
+        <>
+          Records with values between <strong>{greenThreshold?.toLocaleString() || greenThreshold}</strong> and <strong>{amberThreshold?.toLocaleString() || amberThreshold}</strong>. These need monitoring.
+        </>
+        );
+      case 'green':
+        return (
+        <>
+          Records with values &le; <strong>{greenThreshold?.toLocaleString() || greenThreshold}</strong>. These are performing well.
+        </>
+        );
+      default:
+        return 'No description available.';
       }
     }
     
@@ -335,7 +359,7 @@ const KPIAnalysisLayout = ({
                         </div>
                       </div>
                       <p style={{
-                        fontSize: '0.8rem',
+                        fontSize: '1rem',
                         color: '#6b7280',
                         lineHeight: '1.4',
                         textAlign: 'center'

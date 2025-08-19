@@ -227,24 +227,45 @@ export const useThresholdForm = () => {
     setMessage({ type: '', text: '' });
   };
 
-  // Handle form submission
-  const handlePreview = async (e) => {
-    e.preventDefault();
-    
+  // Shared logic for preview and save+preview
+  const processForm = async ({ save = false, e = null }) => {
+    if (e) e.preventDefault();
+
     // Validate form
     const validation = validateThresholdForm(formData);
-    
-    console.log('Form data:', formData);
-    console.log('Validation result:', validation);
-    
+
+    console.log(save ? 'Save and Preview - Form data:' : 'Form data:', formData);
+    console.log(save ? 'Save and Preview - Validation result:' : 'Validation result:', validation);
+
     if (!validation.isValid) {
       setMessage(createMessage('error', validation.errors.join(', ')));
       return;
     }
 
     setLoading(true);
-    
+
     try {
+      // Save threshold if required
+      if (save) {
+        const thresholdData = {
+          collectionName: validation.values.collectionName,
+          field: validation.values.field,
+          green: parseFloat(validation.values.green),
+          amber: parseFloat(validation.values.amber),
+          direction: validation.values.direction
+        };
+
+        console.log('Threshold data being saved:', thresholdData);
+
+        const saveResult = await saveThreshold(thresholdData);
+
+        if (!saveResult.success) {
+          setMessage(createMessage('error', saveResult.message || 'Failed to save threshold'));
+          setLoading(false);
+          return;
+        }
+      }
+
       // Analyze KPI data
       const analysisData = {
         collectionName: validation.values.collectionName,
@@ -255,31 +276,38 @@ export const useThresholdForm = () => {
       };
 
       console.log('Analysis data being sent:', analysisData);
-      
+
       const analysisResult = await analyzeKPIData(analysisData);
-      
+
       if (!analysisResult.success) {
         setMessage(createMessage('error', analysisResult.error || 'Failed to analyze KPI data'));
         setLoading(false);
         return;
       }
 
-      // Step 3: Navigate to preview page with results
+      // Navigate to preview page with results
       navigate('/preview', {
         state: {
-          analysisData: analysisResult.data, // Extract the actual data from the wrapper
+          analysisData: analysisResult.data,
           field: validation.values.field,
-          collectionName: validation.values.collectionName
+          collectionName: validation.values.collectionName,
+          ...(save && { saved: true })
         }
       });
-      
+
     } catch (error) {
-      console.error('Error in form submission:', error);
+      console.error(save ? 'Error in save and preview:' : 'Error in form submission:', error);
       setMessage(createMessage('error', 'An unexpected error occurred'));
     } finally {
       setLoading(false);
     }
   };
+
+  // Handle form submission (preview only, no save)
+  const handlePreview = (e) => processForm({ save: false, e });
+
+  // Handle save and preview (saves to database then navigates to preview)
+  const handleSaveAndPreview = () => processForm({ save: true });
 
   return {
     formData,
@@ -290,6 +318,7 @@ export const useThresholdForm = () => {
     resetForm,
     clearMessage,
     handlePreview,
+    handleSaveAndPreview,
     validation: validateThresholdForm(formData)
   };
 };

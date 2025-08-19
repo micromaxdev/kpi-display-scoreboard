@@ -401,6 +401,11 @@ export const ResetBtn = styled.button`
     background: #e9ecef;
     border-color: #dee2e6;
   }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 // Inline info tooltip for form labels

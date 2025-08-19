@@ -58,6 +58,7 @@ const ThresholdForm = () => {
     resetForm,
     clearMessage,
     handlePreview,
+    handleSaveAndPreview,
     validation
   } = useThresholdFormWithData();
 
@@ -349,6 +350,9 @@ const ThresholdForm = () => {
               <ResetBtn type="button" onClick={resetForm} disabled={loading}>
                 Reset
               </ResetBtn>
+              <SubmitBtn type="button" onClick={handleSaveAndPreview} disabled={loading || !validation.isValid}>
+                {loading ? 'Saving...' : 'Save & Preview'}
+              </SubmitBtn>
             </Actions>
           </CardForm>
 
