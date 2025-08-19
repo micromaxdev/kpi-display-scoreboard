@@ -39,7 +39,6 @@ export async function addThresholdId(req, res) {
     }
 }
 
-
 export async function deleteThresholdId(req, res) {
     const { displayName, thresholdId } = req.body;
     try {
@@ -66,4 +65,34 @@ export async function deleteDisplay(req, res) {
         console.error('Error deleting display:', error);
         res.status(500).json({ success: false, message: error.message });
     }
+}
+
+export  async function saveOrUpdateDisplay(req, res){
+    try {
+        const {displayName, time, thresholdId} = req.body;
+
+        if(!displayName) {
+            return res.status(400).json({ success: false, message: 'Display name, time, and threshold ID are required' });
+        }
+
+        let existingDisplay = await displayService.getDisplayByName(displayName);
+        if (existingDisplay) {
+            // Update existing display
+            existingDisplay.time = time;
+            //push thresholdId
+            if(thresholdId!=null && thresholdId!=undefined && thresholdId!='') {
+                existingDisplay = await displayService.addThresholdId(displayName, thresholdId);
+            }
+            await displayService.setDisplay(displayName, existingDisplay);
+            return res.json({ success: true, display: existingDisplay, message: 'Display updated successfully' });
+        } else {
+            // Create new display
+            const newDisplay = await displayService.setDisplay(displayName, { time, thresholdIds: [thresholdId] });
+            return res.status(201).json({ success: true, display: newDisplay, message: 'Display created successfully' });
+        }
+    } catch (error) {
+        console.error('Error saving or updating display:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+
 }
