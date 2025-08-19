@@ -139,7 +139,10 @@ const KPIAnalysisLayout = ({
 
   // Function to get all unique fields from data, excluding system fields
   const getDynamicFields = (data) => {
-    if (!data || data.length === 0) return [];
+    // Ensure data is an array and has elements
+    if (!Array.isArray(data) || data.length === 0) {
+      return ['ragCategory']; // Return at least the RAG field
+    }
     
     const excludedFields = [
       '_id', 
@@ -180,14 +183,25 @@ const KPIAnalysisLayout = ({
     const ragField = 'ragCategory';
     const otherFields = allFields.filter(field => field !== ragField);
     
-    return [ragField, ...otherFields];
+    // Ensure we always have at least the RAG field
+    const result = [ragField, ...otherFields];
+    return result.length > 0 ? result : ['ragCategory'];
   };
 
   // Function to get grid template columns based on field count - using smaller columns
   const getGridTemplateColumns = (fieldCount) => {
+    // Validate fieldCount and ensure it's a positive number
+    const validFieldCount = typeof fieldCount === 'number' && fieldCount > 0 ? fieldCount : 1;
+    
+    // If only 1 field (just RAG), return single column
+    if (validFieldCount <= 1) {
+      return '40px';
+    }
+    
     // Responsive column sizing: fixed RAG column + flexible data columns
     const ragColumn = '40px';
-    const standardColumns = Array(fieldCount - 1).fill('minmax(130px, 1fr)').join(' ');
+    const otherColumnsCount = validFieldCount - 1;
+    const standardColumns = Array(otherColumnsCount).fill('minmax(130px, 1fr)').join(' ');
     return `${ragColumn} ${standardColumns}`;
   };
 

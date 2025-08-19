@@ -245,7 +245,7 @@ export const useThresholdForm = () => {
     setLoading(true);
 
     try {
-      // Save threshold if required
+      // Save threshold if required 
       if (save) {
         const thresholdData = {
           collectionName: validation.values.collectionName,
@@ -258,7 +258,9 @@ export const useThresholdForm = () => {
         console.log('Threshold data being saved:', thresholdData);
 
         const saveResult = await saveThreshold(thresholdData);
-
+        ///////////////////////////////////////////
+        // Save Display as well with thresholdID //
+        ///////////////////////////////////////////
         if (!saveResult.success) {
           setMessage(createMessage('error', saveResult.message || 'Failed to save threshold'));
           setLoading(false);
@@ -278,6 +280,7 @@ export const useThresholdForm = () => {
       console.log('Analysis data being sent:', analysisData);
 
       const analysisResult = await analyzeKPIData(analysisData);
+
 
       if (!analysisResult.success) {
         setMessage(createMessage('error', analysisResult.error || 'Failed to analyze KPI data'));
