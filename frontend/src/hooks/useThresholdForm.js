@@ -150,14 +150,14 @@ export const useThresholdForm = () => {
   // Function to get initial form state with localStorage persistence
   const getPersistedFormState = () => {
     try {
-      const saved = localStorage.getItem('kpi-threshold-form-data');
+      const saved = sessionStorage.getItem('kpi-threshold-form-data');
       if (saved) {
         const parsedData = JSON.parse(saved);
-        console.log('Restored form data from localStorage:', parsedData);
+        console.log('Restored form data from sessionStorage:', parsedData);
         return parsedData;
       }
     } catch (error) {
-      console.warn('Failed to restore form data from localStorage:', error);
+      console.warn('Failed to restore form data from sessionStorage:', error);
     }
     console.log('No saved data found, using initial state');
     return getInitialFormState();
@@ -193,8 +193,8 @@ export const useThresholdForm = () => {
   // Save form data to localStorage whenever it changes
   useEffect(() => {
     try {
-      localStorage.setItem('kpi-threshold-form-data', JSON.stringify(formData));
-      console.log('Form data saved to localStorage:', formData);
+      sessionStorage.setItem('kpi-threshold-form-data', JSON.stringify(formData));
+      console.log('Form data saved to sessionStorage:', formData);
     } catch (error) {
       console.warn('Failed to save form data to localStorage:', error);
     }
