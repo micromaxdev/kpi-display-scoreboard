@@ -278,3 +278,80 @@ export const fetchDisplayConfig = async (displayName) => {
     };
   }
 };
+
+/**
+ * Downloads Excel file with KPI analysis data
+ * @param {object} downloadData - Download configuration object
+ * @param {string} downloadData.collectionName - Name of the collection
+ * @param {string} downloadData.field - Field name
+ * @param {string|number} downloadData.greenThreshold - Green threshold value
+ * @param {string|number} downloadData.amberThreshold - Amber threshold value
+ * @param {string} downloadData.direction - Direction ('higher' or 'lower')
+ * @returns {Promise<object>} - API response
+ */
+export const downloadExcel = async (downloadData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/kpi-api/download-excel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        collectionName: downloadData.collectionName,
+        field: downloadData.field,
+        greenThreshold: downloadData.greenThreshold,
+        amberThreshold: downloadData.amberThreshold,
+        direction: downloadData.direction,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Get the filename from the response headers
+    const contentDisposition = response.headers.get('content-disposition');
+    let filename = 'kpi-analysis.xlsx'; // default fallback
+    console.log('conten')
+    if (contentDisposition) {
+      console.log('Content-Disposition header:', contentDisposition);
+      
+      // Simple and reliable approach: look for filename="..." or filename=...
+      const filenameMatch = contentDisposition.match(/filename=["']?([^"']+)["']?/);
+      if (filenameMatch) {
+        filename = filenameMatch[1];
+        console.log('Extracted filename:', filename);
+      } else {
+        console.log('No filename found in Content-Disposition, using default');
+      }
+    } else {
+      console.log('No Content-Disposition header found');
+    }
+
+    // Create blob from response
+    const blob = await response.blob();
+    
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    return {
+      success: true,
+      message: 'Excel file downloaded successfully!',
+      error: null
+    };
+  } catch (error) {
+    console.error('Error downloading Excel file:', error);
+    return {
+      success: false,
+      message: 'Error downloading Excel file',
+      error: error.message
+    };
+  }
+};

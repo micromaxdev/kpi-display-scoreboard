@@ -21,7 +21,8 @@ app.use(express.json());
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  credentials: true,
+  exposedHeaders: ['Content-Disposition', 'Content-Length', 'Content-Type']
 }));
 // Basic Hello World route
 app.get('/', (req, res) => {

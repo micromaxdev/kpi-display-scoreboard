@@ -296,6 +296,9 @@ export const useThresholdForm = () => {
           analysisData: analysisResult.data,
           field: validation.values.field,
           collectionName: validation.values.collectionName,
+          greenThreshold: parseFloat(validation.values.green),
+          amberThreshold: parseFloat(validation.values.amber),
+          direction: validation.values.direction,
           ...(save && { saved: true })
         }
       });

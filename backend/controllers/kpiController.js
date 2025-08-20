@@ -55,7 +55,6 @@ export const downloadExcel = async (req, res) => {
         const filename = `${collectionName}_${field}_categorized_${new Date().toISOString().split('T')[0]}.xlsx`;
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-
         // Write to response
         await workbook.xlsx.write(res);
         res.end();

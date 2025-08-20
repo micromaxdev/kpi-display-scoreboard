@@ -19,7 +19,7 @@ const KPIAnalysisLayout = ({
   collectionName, 
   actionButtons,
   emptyStateTitle = "No Analysis Data Available",
-  emptyStateMessage = "Please configure your threshold settings."
+  emptyStateMessage = "Please configure your threshold and display settings."
 }) => {
   if (!analysisData) {
     return (
