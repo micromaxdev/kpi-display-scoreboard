@@ -1,34 +1,12 @@
-import { getTopNCategory, categorizeItems } from "../services/kpiService.js";
-import { getAllDataFromCollection } from "../services/dataService.js";
-import { validateInput, checkThresholds } from "../utils/kpiUtils.js";
-
+import { getTopNCategory, processData } from "../services/kpiService.js";
+import { createColorCodedExcel } from "../utils/kpiUtils.js";
 
 export const analyzeKPIData = async (req, res) => {
     try {
         const {collectionName, field, greenThreshold, amberThreshold, direction} = req.body;
         
-        // Validate required parameters
-        const validated = await validateInput(field, greenThreshold, amberThreshold);
-        if (!validated.success) {
-            return res.status(400).json(validated);
-        }
-        // Check thresholds based on direction
-        const checkThresholdsResult = await checkThresholds(greenThreshold, amberThreshold, direction);
-        if (!checkThresholdsResult.success) {
-            return res.status(400).json(checkThresholdsResult);
-        }
-        // Fetch all data from the collection
-        const dataResult = await getAllDataFromCollection(collectionName);
-        if (!dataResult.success) {
-            return res.status(500).json({ success: false, message: dataResult.message });
-        }
-
-        const thresholds = {
-            green: parseFloat(greenThreshold),
-            amber: parseFloat(amberThreshold)
-        };
         //categorize items based on the field and thresholds
-        const categorizedItems = categorizeItems(dataResult.data, field, thresholds, direction);
+        const categorizedItems = await processData(collectionName, field, greenThreshold, amberThreshold, direction);
         //count items in each RAG category
         const countsByCategory = {
             green: categorizedItems.filter(item => item.ragCategory === 'green').length,
@@ -45,8 +23,8 @@ export const analyzeKPIData = async (req, res) => {
             success: true,
             collection: collectionName,
             thresholds:{
-                green: thresholds.green,
-                amber: thresholds.amber,
+                green: parseFloat(greenThreshold),
+                amber: parseFloat(amberThreshold),
                 direction: direction
             },
             countsByCategory,
@@ -59,3 +37,33 @@ export const analyzeKPIData = async (req, res) => {
     }
 
 }
+
+export const downloadExcel = async (req, res) => {
+    try {
+        const { collectionName, field, greenThreshold, amberThreshold, direction } = req.body;
+
+        // Categorize items based on the field and thresholds
+        const categorizedItems = await processData(collectionName, field, greenThreshold, amberThreshold, direction);
+        const thresholds = {
+            green: parseFloat(greenThreshold),
+            amber: parseFloat(amberThreshold)
+        };
+        // Create Excel workbook with color coding
+        const workbook = await createColorCodedExcel(categorizedItems, field, collectionName, thresholds, direction);
+
+        // Set headers for Excel download
+        const filename = `${collectionName}_${field}_categorized_${new Date().toISOString().split('T')[0]}.xlsx`;
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+        // Write to response
+        await workbook.xlsx.write(res);
+        res.end();
+
+    } catch (error) {
+        console.error('Error downloading Excel:', error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+
