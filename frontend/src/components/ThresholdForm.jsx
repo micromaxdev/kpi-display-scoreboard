@@ -89,6 +89,33 @@ const ThresholdForm = () => {
       updateField('direction', directionSuggestion.suggestion);
     }
   };
+  // Function to get threshold description based on direction
+  const getThresholdDescription = () => {
+    if (!greenThreshold || !amberThreshold) {
+      return {
+        green: "Green: Performance meets or exceeds target",
+        amber: "Amber: Performance is approaching target", 
+        red: "Red: Performance is below amber threshold"
+      };
+    }
+
+    const green = parseFloat(greenThreshold);
+    const amber = parseFloat(amberThreshold);
+
+    if (direction === 'higher') {
+      return {
+        green: `Green: Values ≥ ${green} (meets or exceeds target)`,
+        amber: `Amber: Values between ${amber} and ${green} (approaching target)`,
+        red: `Red: Values < ${amber} (below target threshold)`
+      };
+    } else {
+      return {
+        green: `Green: Values ≤ ${green} (meets or exceeds target)`,
+        amber: `Amber: Values between ${green} and ${amber} (approaching target)`,
+        red: `Red: Values > ${amber} (above target threshold)`
+      };
+    }
+  };
 
   return (
     <Page>
@@ -361,15 +388,15 @@ const ThresholdForm = () => {
             <InfoGrid>
               <InfoItem>
                 <ColorIndicator $color="green" />
-                <span>Green: Performance meets or exceeds target</span>
+                <span>{getThresholdDescription().green}</span>
               </InfoItem>
               <InfoItem>
                 <ColorIndicator $color="amber" />
-                <span>Amber: Performance is approaching target</span>
+                <span>{getThresholdDescription().amber}</span>
               </InfoItem>
               <InfoItem>
                 <ColorIndicator $color="red" />
-                <span>Red: Performance is below amber threshold</span>
+                <span>{getThresholdDescription().red}</span>
               </InfoItem>
             </InfoGrid>
           </ThresholdInfo>

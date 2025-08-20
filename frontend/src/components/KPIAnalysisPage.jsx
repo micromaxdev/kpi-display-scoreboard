@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import {LastUpdatedTimestamp} from '../styles/KpiLayout.styled.js';
 import KPIAnalysisLayout from './KPIAnalysisLayout';
 import { fetchDisplayConfig, analyzeKPIData } from '../services/apiService';
+
 
 const KPIAnalysisPage = () => {
   const { displayName } = useParams();
@@ -19,8 +21,7 @@ const KPIAnalysisPage = () => {
         
         if (displayRes.success && displayRes.display) {
           const display = displayRes.display;
-          
-          // Use the first threshold for analysis
+
           if (display.thresholdIds && display.thresholdIds.length > 0) {
             const firstThreshold = display.thresholdIds[0];
             
@@ -47,13 +48,11 @@ const KPIAnalysisPage = () => {
           }
         }
       } catch (err) {
-        console.error('Fetch exception:', err);
+        console.error('Fetch exception (keeping last known data displayed):', err);
       }
     };
 
     fetchContent();
-    
-    // Set up polling based on the time from display config
     let interval;
     if (content?.display?.time) {
       interval = setInterval(fetchContent, content.display.time * 1000);
@@ -82,17 +81,53 @@ const KPIAnalysisPage = () => {
 
   const { display, analysisData, currentThreshold } = content;
 
+  // Format the last updated time for display
+  const formatLastUpdated = () => {
+    if (!content?.lastUpdated) return { time: 'Never', date: '' };
+    
+    const lastUpdate = new Date(content.lastUpdated);
+    const now = new Date();
+    
+    // Format time as HH:MM:SS
+    const timeStr = lastUpdate.toLocaleTimeString('en-US', { 
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    
+    // Format date - show date if not today
+    const isToday = lastUpdate.toDateString() === now.toDateString();
+    const dateStr = isToday ? 'Today' : lastUpdate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+    
+    return { time: timeStr, date: dateStr };
+  };
+
+  const { time: lastUpdatedTime, date: lastUpdatedDate } = formatLastUpdated();
+
   return (
-    <KPIAnalysisLayout
-      title={`KPI Dashboard: ${displayName}`}
-      subtitle={`Collection: ${currentThreshold?.collectionName || 'N/A'} | Field: ${currentThreshold?.field || 'N/A'} | Polling: ${display?.time || 30}s`}
-      analysisData={analysisData}
-      field={currentThreshold?.field}
-      collectionName={currentThreshold?.collectionName}
-      actionButtons={null}
-      emptyStateTitle="No Analysis Data Available"
-      emptyStateMessage="No data could be analyzed for this display configuration."
-    />
+    <>
+      {/* Last Updated Timestamp in bottom-right corner */}
+      <LastUpdatedTimestamp>
+        <span className="label">Last Updated:</span>
+        <div className="time">{lastUpdatedTime}</div>
+        <div className="date">{lastUpdatedDate}</div>
+      </LastUpdatedTimestamp>
+      <KPIAnalysisLayout
+        title={`KPI Dashboard: ${displayName}`}
+        subtitle={`Collection: ${currentThreshold?.collectionName || 'N/A'} | Field: ${currentThreshold?.field || 'N/A'} | Polling: ${display?.time || 30}s`}
+        analysisData={analysisData}
+        field={currentThreshold?.field}
+        collectionName={currentThreshold?.collectionName}
+        actionButtons={null}
+        emptyStateTitle="No Analysis Data Available"
+        emptyStateMessage="No data could be analyzed for this display configuration."
+      />
+      
+    </>
   );
 };
 

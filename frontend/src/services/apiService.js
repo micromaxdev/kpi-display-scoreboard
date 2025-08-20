@@ -264,7 +264,6 @@ export const fetchDisplayConfig = async (displayName) => {
   try {
     const response = await fetch(`${API_BASE_URL}/display-api/${displayName}`);
     const data = await response.json();
-    
     return {
       success: data.success,
       display: data.display || null,
