@@ -50,19 +50,19 @@ export async function processData(collectionName, field, greenThreshold, amberTh
     // Validate required parameters
     const validated = await validateInput(field, greenThreshold, amberThreshold);
     if (!validated.success) {
-        return res.status(400).json(validated);
+        throw new Error(validated.message || 'Invalid input parameters');
     }
 
     // Check thresholds based on direction
     const checkThresholdsResult = await checkThresholds(greenThreshold, amberThreshold, direction);
     if (!checkThresholdsResult.success) {
-        return res.status(400).json(checkThresholdsResult);
+        throw new Error(checkThresholdsResult.message || 'Threshold check failed');
     }
 
     // Fetch all data from the collection
     const dataResult = await getAllDataFromCollection(collectionName);
     if (!dataResult.success) {
-        return res.status(500).json({ success: false, message: dataResult.message });
+        throw new Error(dataResult.message || 'Failed to fetch data');
     }
 
     const thresholds = {
@@ -73,6 +73,6 @@ export async function processData(collectionName, field, greenThreshold, amberTh
     // Categorize items based on the field and thresholds
     const categorizedItems = categorizeItems(dataResult.data, field, thresholds, direction);
 
-    return categorizedItems
+    return categorizedItems;
 }
 
