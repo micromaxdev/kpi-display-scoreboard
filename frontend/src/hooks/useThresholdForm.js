@@ -213,12 +213,12 @@ export const useThresholdForm = () => {
     const initialState = getInitialFormState();
     setFormData(initialState);
     setMessage({ type: '', text: '' });
-    // Clear localStorage when resetting
+    // Clear sessionStorage when resetting
     try {
-      localStorage.removeItem('kpi-threshold-form-data');
-      console.log('Form data cleared from localStorage');
+      sessionStorage.removeItem('kpi-threshold-form-data');
+      console.log('Form data cleared from sessionStorage'); 
     } catch (error) {
-      console.warn('Failed to clear form data from localStorage:', error);
+      console.warn('Failed to clear form data from sessionStorage:', error);
     }
   };
 
