@@ -1,6 +1,6 @@
 # KPI Display Scoreboard - Backend API
 
-A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB collection access with advanced querying, pagination, and filtering capabilities. Built specifically for KPI dashboards and data visualization applications.
+A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB collection access with advanced querying, pagination, and filtering capabilities. Built specifically for KPI dashboards and data visualization applications with comprehensive threshold management and display configuration features.
 
 ## 🚀 Features
 
@@ -9,6 +9,9 @@ A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB co
 - **📄 Smart Pagination**: Built-in pagination with metadata and performance optimization
 - **🔍 Flexible Sorting**: Multi-field sorting with ascending/descending order
 - **📅 Intelligent Date Handling**: Automatic date format normalization and filtering
+- **📈 KPI Analysis**: Built-in RAG (Red-Amber-Green) categorization for KPI tracking
+- **⚙️ Threshold Management**: Dynamic threshold configuration and monitoring
+- **🖥️ Display Configuration**: Customizable display settings and layouts
 - **⚡ Performance Optimized**: Lean queries, model caching, and efficient indexing
 - **🛠️ RESTful Design**: Clean, intuitive API endpoints
 - **🔒 Error Handling**: Comprehensive error handling and validation
@@ -31,7 +34,7 @@ A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB co
 
 - **Node.js** v16 or higher
 - **MongoDB** 4.4 or higher
-- **Yarn** package manager
+- **Yarn** package manager v4.9.2+
 
 ### Installation
 
@@ -56,14 +59,9 @@ A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB co
    PORT=5000
    NODE_ENV=development
 
-   # JWT Secret for authentication
-   JWT_SECRET=your_jwt_secret
+   # CORS Configuration
+   ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 
-   # Optional: Email Configuration (if using email features)
-   EMAIL_HOST=smtp.gmail.com
-   EMAIL_PORT=587
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASS=your-app-password
    ```
 
 4. **Start the server**
@@ -83,7 +81,49 @@ A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB co
 
 ## 🛠️ API Endpoints
 
-### 📊 Collection Data Operations
+### 📊 Dynamic Collection Operations
+
+#### 1. Get Paginated Collection Data
+```http
+GET /api/find/:collectionName
+```
+
+#### 2. Get Collections List
+```http
+GET /api/collectionList
+```
+
+#### 3. Get Collection Schema
+```http
+GET /api/collectionFields/:collectionName
+```
+
+### 📈 KPI Analysis Operations
+
+#### 4. Analyze KPI Data
+```http
+POST /kpi-api/analyze
+```
+
+### ⚙️ Threshold Management
+
+#### 5. Threshold Operations
+```http
+GET /threshold-api/thresholds
+POST /threshold-api/thresholds
+PUT /threshold-api/thresholds/:id
+DELETE /threshold-api/thresholds/:id
+```
+
+### 🖥️ Display Configuration
+
+#### 6. Display Operations
+```http
+GET /display-api/displays
+POST /display-api/displays
+PUT /display-api/displays/:id
+DELETE /display-api/displays/:id
+```
 
 #### 1. Get Paginated Collection Data
 ```http
@@ -388,16 +428,36 @@ backend/
 │   ├── db.js                    # MongoDB connection setup
 │   └── join.js                  # Aggregation pipeline utilities
 ├── 📁 controllers/
-│   └── dynamicModelController.js # Main API request handlers
+│   ├── displayController.js     # Display configuration handlers
+│   ├── dynamicModelController.js # Dynamic collection API handlers
+│   ├── kpiController.js         # KPI analysis handlers
+│   └── thresholdController.js   # Threshold management handlers
 ├── 📁 middleware/
 │   ├── authMiddleware.js        # Authentication middleware
 │   └── errorMiddleware.js       # Global error handling
 ├── 📁 models/
-│   └── dynamicModel.js          # Dynamic Mongoose model generator
+│   ├── displayModel.js          # Display configuration model
+│   ├── dynamicModel.js          # Dynamic Mongoose model generator
+│   └── thresholdModel.js        # Threshold configuration model
 ├── 📁 routes/
-│   └── dynamicModelRoutes.js    # API route definitions
+│   ├── displayRoutes.js         # Display API routes
+│   ├── dynamicModelRoutes.js    # Dynamic collection API routes
+│   ├── kpiRoutes.js             # KPI analysis routes
+│   └── thresholdRoutes.js       # Threshold management routes
 ├── 📁 services/
 │   ├── dataService.js           # Core data operations
+│   ├── displayService.js        # Display business logic
+│   ├── kpiService.js            # KPI analysis business logic
+│   ├── queryService.js          # Query building utilities
+│   └── thresholdService.js      # Threshold business logic
+├── 📁 utils/
+│   ├── dateUtils.js             # Date formatting and utilities
+│   ├── kpiUtils.js              # KPI calculation utilities
+│   └── ragCategoryUtils.js      # RAG categorization utilities
+├── 📄 server.js                 # Application entry point
+├── 📄 package.json              # Dependencies and scripts
+└── 📄 .env                      # Environment configuration
+```
 │   ├── queryService.js          # Query building utilities  
 │   └── dateService.js           # Date formatting and normalization
 ├── 📄 server.js                 # Application entry point
@@ -422,11 +482,26 @@ backend/
   - `buildPaginationInfo()` - Generates pagination metadata
   - `extractQueryParams()` - Validates and processes request parameters
 
-#### DateService (`dateService.js`)
-- **Primary Functions**: Date format detection and normalization
+#### KpiService (`kpiService.js`)
+- **Primary Functions**: KPI analysis, RAG categorization, threshold evaluation
 - **Key Methods**:
-  - `normalizeDateFormat()` - Converts various date formats to standard format
-  - `isLikelyDate()` - Intelligent date string detection
+  - `analyzeKpiData()` - Performs KPI analysis with RAG categorization
+  - `calculateThresholds()` - Calculates performance thresholds
+  - `categorizeItems()` - Applies RAG categorization logic
+
+#### ThresholdService (`thresholdService.js`)
+- **Primary Functions**: Threshold management, configuration validation
+- **Key Methods**:
+  - `createThreshold()` - Creates new threshold configurations
+  - `updateThreshold()` - Updates existing thresholds
+  - `validateThresholdConfig()` - Validates threshold parameters
+
+#### DisplayService (`displayService.js`)
+- **Primary Functions**: Display configuration management, layout settings
+- **Key Methods**:
+  - `createDisplay()` - Creates new display configurations
+  - `updateDisplay()` - Updates display settings
+  - `getDisplayConfig()` - Retrieves display configurations
 
 ### Performance Optimizations
 
@@ -469,6 +544,7 @@ yarn outdated
 | `MONGO_URI` | MongoDB connection string | - | ✅ |
 | `PORT` | Server port | 5000 | ❌ |
 | `NODE_ENV` | Environment mode | development | ❌ |
+| `ALLOWED_ORIGINS` | CORS allowed origins (comma-separated) | * | ❌ |
 | `JWT_SECRET` | Secret key for JWT authentication | - | ✅ |
 | `EMAIL_HOST` | SMTP server host | - | ❌ |
 | `EMAIL_PORT` | SMTP server port | 587 | ❌ |
@@ -535,6 +611,7 @@ GET /
 - **express-async-handler** ^1.2.0 - Async error handling
 - **nodemailer** ^6.9.7 - Email sending capabilities
 - **mongodb** ^6.3.0 - Native MongoDB driver
+- **exceljs** ^4.4.0 - Excel file generation and parsing
 
 ### Development Dependencies
 
