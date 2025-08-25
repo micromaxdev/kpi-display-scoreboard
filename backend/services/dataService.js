@@ -147,3 +147,27 @@ export const getListOfCollections = async () => {
         throw new Error(`Error retrieving collections list: ${error.message}`);
     }
 }
+
+/**
+ * Upload data to a collection
+ * @param {string} collectionName - The name of the collection
+ * @param {Array<Object>} dataArray - The array of data to upload
+ * @returns {Promise<Object>} Result of the upload operation
+ */
+export const uploadDataToCollection = async (collectionName, dataArray) => {
+  try {
+    if (!collectionName || !Array.isArray(dataArray)) {
+      throw new Error('Invalid input');
+    }
+
+    const Model = getDynamicModel(collectionName);
+    const result = await Model.insertMany(dataArray);
+    return {
+      success: true,
+      data: result,
+      collection: collectionName
+    };
+  } catch (error) {
+    throw new Error(`Error uploading data to collection '${collectionName}': ${error.message}`);
+  }
+}
