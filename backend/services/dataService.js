@@ -159,8 +159,12 @@ export const uploadDataToCollection = async (collectionName, dataArray) => {
     if (!collectionName || !Array.isArray(dataArray)) {
       throw new Error('Invalid input');
     }
-
     const Model = getDynamicModel(collectionName);
+    const existingCount = await Model.countDocuments({});
+    if (existingCount > 0) {
+      await Model.deleteMany({});
+      console.log(`Cleared existing data in collection '${collectionName}' before upload.`);
+    }
     const result = await Model.insertMany(dataArray);
     return {
       success: true,
