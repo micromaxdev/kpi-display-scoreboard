@@ -355,3 +355,144 @@ export const downloadExcel = async (downloadData) => {
     };
   }
 };
+
+/**
+ * Utility function to convert string to camelCase
+ * @param {string} str - String to convert
+ * @returns {string} - CamelCase string
+ */
+const toCamelCase = (str) => {
+  return str
+    .trim()
+    .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) =>
+      index === 0 ? word.toLowerCase() : word.toUpperCase()
+    )
+    .replace(/\s+/g, '');
+};
+
+/**
+ * Validates file for upload
+ * @param {File} file - File object to validate
+ * @returns {object} - Validation result
+ */
+const validateFile = (file) => {
+  const allowedTypes = ['.csv', '.xlsx', '.xls'];
+  const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+  
+  if (!allowedTypes.includes(fileExtension)) {
+    return {
+      isValid: false,
+      error: 'Please select a CSV or Excel file (.csv, .xlsx, .xls)'
+    };
+  }
+
+  const maxSize = 50 * 1024 * 1024; // 50MB
+  if (file.size > maxSize) {
+    return {
+      isValid: false,
+      error: 'File size must be less than 50MB'
+    };
+  }
+
+  return { isValid: true, error: null };
+};
+
+/**
+ * Uploads a file to create or update a collection
+ * @param {string} collectionName - Name of the collection
+ * @param {File} file - File to upload
+ * @returns {Promise<object>} - Upload result
+ */
+export const uploadFileToCollection = async (collectionName, file) => {
+  try {
+    // Validate inputs
+    if (!collectionName?.trim()) {
+      return {
+        success: false,
+        message: 'Collection name is required',
+        error: 'INVALID_COLLECTION_NAME'
+      };
+    }
+
+    if (!file) {
+      return {
+        success: false,
+        message: 'File is required',
+        error: 'NO_FILE_SELECTED'
+      };
+    }
+
+    // Validate file
+    const validation = validateFile(file);
+    if (!validation.isValid) {
+      return {
+        success: false,
+        message: validation.error,
+        error: 'INVALID_FILE'
+      };
+    }
+
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Convert collection name to camelCase
+    const camelCaseCollectionName = toCamelCase(collectionName);
+
+    // Setup timeout using AbortController
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes timeout
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/file-api/${camelCaseCollectionName}/upload`, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        return {
+          success: true,
+          data: result.data,
+          collectionName: camelCaseCollectionName,
+          originalName: collectionName,
+          message: `Successfully uploaded ${result.data?.insertedCount || 0} records`
+        };
+      } else {
+        return {
+          success: false,
+          message: result.message || 'Upload failed',
+          error: 'UPLOAD_FAILED'
+        };
+      }
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      
+      if (fetchError.name === 'AbortError') {
+        return {
+          success: false,
+          message: 'Upload timed out. Please try again.',
+          error: 'TIMEOUT'
+        };
+      }
+      
+      return {
+        success: false,
+        message: 'Network error occurred. Please check your connection.',
+        error: 'NETWORK_ERROR'
+      };
+    }
+
+  } catch (error) {
+    console.error('Upload error:', error);
+    return {
+      success: false,
+      message: 'Unexpected error occurred',
+      error: 'UNEXPECTED_ERROR'
+    };
+  }
+};

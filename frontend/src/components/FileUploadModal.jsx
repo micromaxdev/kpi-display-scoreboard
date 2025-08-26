@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { uploadFileToCollection } from '../services/apiService';
 import {
   ModalOverlay,
   ModalContent,
@@ -50,22 +51,6 @@ const FileUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
   };
 
   const handleFileSelect = (file) => {
-    // Validate file type (CSV, Excel)
-    const allowedTypes = ['.csv', '.xlsx', '.xls'];
-    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-    
-    if (!allowedTypes.includes(fileExtension)) {
-      setError('Please select a CSV or Excel file (.csv, .xlsx, .xls)');
-      return;
-    }
-
-    // Validate file size (max 50MB)
-    const maxSize = 50 * 1024 * 1024; // 50MB
-    if (file.size > maxSize) {
-      setError('File size must be less than 50MB');
-      return;
-    }
-
     setSelectedFile(file);
     setError('');
   };
@@ -98,63 +83,34 @@ const FileUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
   };
 
   const handleUpload = async () => {
-    if (!collectionName.trim()) {
-      setError('Please enter a collection name');
-      return;
-    }
-
-    if (!selectedFile) {
-      setError('Please select a file to upload');
-      return;
-    }
-
+    // Reset states
     setIsUploading(true);
     setError('');
     setSuccess('');
-    setUploadProgress(0);
+    setUploadProgress(100); // Show as complete since we don't track progress
 
     try {
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-        // Convert collectionName to camelCase and trim whitespace
-        const toCamelCase = (str) =>
-        str
-            .trim()
-            .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) =>
-            index === 0 ? word.toLowerCase() : word.toUpperCase()
-            )
-            .replace(/\s+/g, '');
-
-        const camelCaseCollectionName = toCamelCase(collectionName);
-
-        const response = await fetch(`${API_BASE_URL}/file-api/${camelCaseCollectionName}/upload`, {
-        method: 'POST',
-        body: formData
-        });
-
-      const result = await response.json();
+      // Upload file using API service
+      const result = await uploadFileToCollection(collectionName, selectedFile);
 
       if (result.success) {
-        setSuccess(`Successfully uploaded ${result.data.insertedCount} records to ${collectionName}`);
-        setUploadProgress(100);
+        setSuccess(result.message);
         
-        // Call success callback with upload result
+        // Call success callback
         if (onUploadSuccess) {
           onUploadSuccess(result);
         }
 
-        // Close modal after 300ms (less than 1 second)
+        // Close modal after brief delay
         setTimeout(() => {
           handleClose();
         }, 300);
       } else {
-        setError(result.message || 'Upload failed');
+        setError(result.message);
       }
     } catch (error) {
       console.error('Upload error:', error);
-      setError('Network error occurred. Please try again.');
+      setError('Unexpected error occurred. Please try again.');
     } finally {
       setIsUploading(false);
     }
