@@ -36,6 +36,8 @@ import {
   InfoHelp,
   InfoIcon,
   Tooltip,
+  UploadButton,
+  CollectionActions,
 } from '../styles/ThresholdForm.styled';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMemo, useState } from 'react';
@@ -43,6 +45,7 @@ import { useThresholdFormWithData } from '../hooks/useThresholdForm';
 import { getPlaceholderText, formatFieldDisplayName } from '../utils/formUtils';
 import { getDirectionSuggestion } from '../utils/fieldUtils';
 import CollectionDataTable from './CollectionDataTable';
+import FileUploadModal from './FileUploadModal';
 
 const ThresholdForm = () => {
   const {
@@ -59,7 +62,8 @@ const ThresholdForm = () => {
     clearMessage,
     handlePreview,
     handleSaveAndPreview,
-    validation
+    validation,
+    refetchCollections
   } = useThresholdFormWithData();
 
   const {
@@ -74,6 +78,9 @@ const ThresholdForm = () => {
   const [showGreenTip, setShowGreenTip] = useState(false);
   const [showAmberTip, setShowAmberTip] = useState(false);
   const [showDirectionTip, setShowDirectionTip] = useState(false);
+  
+  // File upload modal state
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Get direction suggestion for the selected field
   const directionSuggestion = useMemo(() => {
@@ -88,6 +95,13 @@ const ThresholdForm = () => {
     if (directionSuggestion.suggestion) {
       updateField('direction', directionSuggestion.suggestion);
     }
+  };
+
+  // Handle successful file upload
+  const handleUploadSuccess = (result) => {
+    console.log('File uploaded successfully:', result);
+    // Refresh collections list to show the newly uploaded collection
+    refetchCollections();
   };
   // Function to get threshold description based on direction
   const getThresholdDescription = () => {
@@ -137,7 +151,16 @@ const ThresholdForm = () => {
             {/* Collection Selection - Full Width */}
             <CollectionSection>
               <FormGroup>
-                <label htmlFor="collection">Collection *</label>
+                <LabelRow>
+                  <label htmlFor="collection">Collection *</label>
+                  <UploadButton 
+                    type="button"
+                    onClick={() => setIsUploadModalOpen(true)}
+                    title="Upload new data file"
+                  >
+                    📤 Upload File
+                  </UploadButton>
+                </LabelRow>
                 <select
                   id="collection"
                   value={selectedCollection}
@@ -411,6 +434,13 @@ const ThresholdForm = () => {
           />
         </DataSection>
       </Content>
+
+      {/* File Upload Modal */}
+      <FileUploadModal 
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onUploadSuccess={handleUploadSuccess}
+      />
     </Page>
   );
 };
