@@ -363,11 +363,15 @@ export const downloadExcel = async (downloadData) => {
  */
 const toCamelCase = (str) => {
   return str
+    .replace(/[^a-zA-Z0-9 ]+/g, '') // Remove non-alphanumeric except spaces
     .trim()
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) =>
-      index === 0 ? word.toLowerCase() : word.toUpperCase()
+    .split(/\s+/)
+    .map((word, idx) =>
+      idx === 0
+        ? word.toLowerCase()
+        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     )
-    .replace(/\s+/g, '');
+    .join('');
 };
 
 /**

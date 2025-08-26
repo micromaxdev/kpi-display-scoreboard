@@ -100,6 +100,11 @@ const ThresholdForm = () => {
   // Handle successful file upload
   const handleUploadSuccess = (result) => {
     console.log('File uploaded successfully:', result);
+    
+    // Reset collection selection to trigger data refresh
+    updateField('selectedCollection', '');
+    updateField('selectedField', '');
+    
     // Refresh collections list to show the newly uploaded collection
     refetchCollections();
   };
