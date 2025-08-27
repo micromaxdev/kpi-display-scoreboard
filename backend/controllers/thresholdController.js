@@ -23,6 +23,7 @@ export async function getThreshold(req, res) {
     res.json({ success: true, threshold });
 }
 
+
 // Create or update a threshold
 export async function setThreshold(req, res) {
     const { collectionName, field, green, amber, direction } = req.body;
@@ -32,4 +33,16 @@ export async function setThreshold(req, res) {
     }
     const updated = await thresholdService.setThreshold({ collectionName, field, green, amber, direction });
     res.json({ success: true, threshold: updated });
+}
+
+export async function getThresholdById(req, res) {
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({ success: false, message: 'ID is required' });
+    }
+    const threshold = await thresholdService.getThresholdById(id);
+    if (!threshold) {
+        return res.status(404).json({ success: false, message: 'Threshold not found' });
+    }
+    res.json({ success: true, threshold });
 }

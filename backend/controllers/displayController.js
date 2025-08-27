@@ -81,7 +81,7 @@ export  async function saveOrUpdateDisplay(req, res){
             existingDisplay.time = time;
             //push thresholdId
             if(thresholdId!=null && thresholdId!=undefined && thresholdId!='') {
-                existingDisplay.thresholdIds = [...new Set([thresholdId])]; //to avoid duplicates ONLY 1 id for now
+                existingDisplay = await displayService.addThresholdId(displayName, thresholdId);
             }
             await displayService.setDisplay(displayName, existingDisplay);
             return res.json({ success: true, display: existingDisplay, message: 'Display updated successfully' });
