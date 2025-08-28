@@ -35,7 +35,7 @@ const KPIAnalysisPage = () => {
           if (display.thresholdIds && display.thresholdIds.length > 0) {
             // VALIDATION: Ensure currentThresholdIndex is within bounds
             if (currentThresholdIndex >= display.thresholdIds.length) {
-              console.warn(`⚠️ currentThresholdIndex (${currentThresholdIndex}) out of bounds, resetting to 0`);
+              console.warn(`currentThresholdIndex (${currentThresholdIndex}) out of bounds, resetting to 0`);
               setCurrentThresholdIndex(0);
               return;
             }
@@ -112,22 +112,22 @@ const KPIAnalysisPage = () => {
         const currentIndex = currentContent?.currentThresholdIndex || 0;
         const currentThresholdCount = currentContent?.display?.thresholdIds?.length || 0;
         
-        console.log(`🔄 POLLING: Refreshing data and config for threshold ${currentIndex + 1}/${currentThresholdCount}`);
+        console.log(`POLLING: Refreshing data and config for threshold ${currentIndex + 1}/${currentThresholdCount}`);
         
         const displayRes = await fetchDisplayConfig(displayName);
         if (displayRes.success && displayRes.display) {
           const display = displayRes.display;
           
-          // 🔄 CHECK FOR CONFIGURATION CHANGES
+          // CHECK FOR CONFIGURATION CHANGES
           const oldThresholdCount = currentThresholdCount;
           const newThresholdCount = display.thresholdIds.length;
           
           if (oldThresholdCount !== newThresholdCount) {
-            console.log(`⚠️ THRESHOLD COUNT CHANGED: ${oldThresholdCount} → ${newThresholdCount}. Refreshing full configuration.`);
+            console.log(`THRESHOLD COUNT CHANGED: ${oldThresholdCount} → ${newThresholdCount}. Refreshing full configuration.`);
             
             // Reset threshold index if it's out of bounds
             if (currentIndex >= newThresholdCount) {
-              console.log(`🔄 Resetting threshold index from ${currentIndex} to 0`);
+              console.log(`Resetting threshold index from ${currentIndex} to 0`);
               setCurrentThresholdIndex(0);
               return; // Exit and let the main useEffect handle the reset
             }
@@ -146,9 +146,9 @@ const KPIAnalysisPage = () => {
               });
               
               if (analysisRes.success) {
-                // 🔄 UPDATE BOTH DISPLAY CONFIG AND ANALYSIS DATA
+                // UPDATE BOTH DISPLAY CONFIG AND ANALYSIS DATA
                 const updatedContent = {
-                  display: display, // ✅ Update display config with latest thresholds
+                  display: display, // Update display config with latest thresholds
                   analysisData: analysisRes.data,
                   currentThreshold: currentThreshold,
                   currentThresholdIndex: currentIndex, // Use fresh current index
@@ -156,16 +156,16 @@ const KPIAnalysisPage = () => {
                 };
                 
                 setContent(updatedContent);
-                // ✅ Update ref immediately when content changes
+                // Update ref immediately when content changes
                 thresholdIdsRef.current = display?.thresholdIds;
                 localStorage.setItem(`displayContent_${displayName}`, JSON.stringify(updatedContent));
-                console.log(`✅ POLLING: Updated config & data for ${currentThreshold.collectionName}.${currentThreshold.field}`);
+                console.log(`POLLING: Updated config & data for ${currentThreshold.collectionName}.${currentThreshold.field}`);
               }
             }
           }
         }
       } catch (err) {
-        console.error('❌ Polling error:', err);
+        console.error('Polling error:', err);
       }
     };    const pollingInterval = setInterval(refreshData, pollingTime * 1000);
     
@@ -175,26 +175,26 @@ const KPIAnalysisPage = () => {
     };
   }, [content?.display?.time, displayName]); // Removed currentThresholdIndex dependency
 
-    // 🔄 THRESHOLD INDEX BOUNDS CHECK USEEFFECT
+    // THRESHOLD INDEX BOUNDS CHECK USEEFFECT
   useEffect(() => {
     if (content?.display?.thresholdIds && currentThresholdIndex >= content.display.thresholdIds.length) {
-      console.log(`🔄 RESETTING threshold index from ${currentThresholdIndex} to 0 (threshold count: ${content.display.thresholdIds.length})`);
+      console.log(`RESETTING threshold index from ${currentThresholdIndex} to 0 (threshold count: ${content.display.thresholdIds.length})`);
       setCurrentThresholdIndex(0);
     }
   }, [content?.display?.thresholdIds?.length, currentThresholdIndex]);
 
-  // 🔄 THRESHOLD CYCLING USEEFFECT
+  // THRESHOLD CYCLING USEEFFECT
   useEffect(() => {
     if (!content?.display?.thresholdIds || content.display.thresholdIds.length <= 1) {
-      console.log('🔄 Skipping threshold cycling - only one or no thresholds');
+      console.log('Skipping threshold cycling - only one or no thresholds');
       return; // No cycling needed for single threshold
     }
 
     const thresholdCount = content.display.thresholdIds.length;
     const cycleTime = content.display.time || 30;
     
-    console.log(`🔄 Setting up threshold cycling for ${thresholdCount} thresholds, interval: ${cycleTime}s`);
-    console.log('🔄 Current threshold list:', content.display.thresholdIds.map((t, i) => `${i + 1}. ${t.collectionName}.${t.field}`));
+    console.log(`Setting up threshold cycling for ${thresholdCount} thresholds, interval: ${cycleTime}s`);
+    console.log('Current threshold list:', content.display.thresholdIds.map((t, i) => `${i + 1}. ${t.collectionName}.${t.field}`));
 
     const cycleThresholds = () => {
       setCurrentThresholdIndex(prevIndex => {
@@ -204,7 +204,7 @@ const KPIAnalysisPage = () => {
         }
         
         const nextIndex = (prevIndex + 1) % currentThresholds.length;
-        console.log(`🔄 CYCLING TO THRESHOLD ${nextIndex + 1}/${currentThresholds.length} (from ${prevIndex + 1})`);
+        console.log(`CYCLING TO THRESHOLD ${nextIndex + 1}/${currentThresholds.length} (from ${prevIndex + 1})`);
         return nextIndex;
       });
     };
@@ -224,6 +224,7 @@ const KPIAnalysisPage = () => {
   if (!content) {
     return (
       <KPIAnalysisLayout
+        key={`loading-${displayName}`}
         title="Loading..."
         subtitle={`Loading display: ${displayName || 'N/A'}`}
         analysisData={null}
@@ -274,6 +275,7 @@ const KPIAnalysisPage = () => {
         <div className="date">{lastUpdatedDate}</div>
       </LastUpdatedTimestamp>
       <KPIAnalysisLayout
+        key={`${displayName}-${currentThresholdIndex}-${currentThreshold?._id}`}
         title={`KPI Dashboard: ${displayName}`}
         subtitle={`Collection: ${currentThreshold?.collectionName || 'N/A'} | Field: ${currentThreshold?.field || 'N/A'} | Polling: ${display?.time || 30}s | Threshold: ${(currentThresholdIndex || 0) + 1}/${display?.thresholdIds?.length || 1}`}
         analysisData={analysisData}

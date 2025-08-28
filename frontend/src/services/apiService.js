@@ -279,6 +279,7 @@ export const fetchDisplayConfig = async (displayName) => {
   }
 };
 
+
 /**
  * Downloads Excel file with KPI analysis data
  * @param {object} downloadData - Download configuration object

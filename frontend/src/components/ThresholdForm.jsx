@@ -19,6 +19,7 @@ import FieldSelector from './FieldSelector';
 import ThresholdConfig from './ThresholdConfig';
 import ThresholdInfoPanel from './ThresholdInfoPanel';
 import FormActions from './FormActions';
+import DisplaySelector from './DisplaySelector';
 
 const ThresholdForm = () => {
   const {
@@ -49,6 +50,12 @@ const ThresholdForm = () => {
 
   // File upload modal state
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+  // Display selection state
+  const [selectedDisplay, setSelectedDisplay] = useState('');
+  const [displayThresholds, setDisplayThresholds] = useState([]);
+  const [displayLoading, setDisplayLoading] = useState(false);
+  const [displayError, setDisplayError] = useState(null);
 
   // Get direction suggestion for the selected field
   const directionSuggestion = useMemo(() => {
@@ -108,7 +115,7 @@ const ThresholdForm = () => {
     <Page>
       <PageHeader>
         <h2>Set KPI Thresholds</h2>
-        <p>Configure green and amber thresholds for your KPI metrics</p>
+        {/* <p>Configure green and amber thresholds for your KPI metrics</p> */}
       </PageHeader>
 
       {message.text && (
@@ -168,6 +175,18 @@ const ThresholdForm = () => {
         </FormSection>
 
         <DataSection>
+          {/* Display Selection Section */}
+          <DisplaySelector
+            selectedDisplay={selectedDisplay}
+            displayThresholds={displayThresholds}
+            loading={displayLoading}
+            error={displayError}
+            onDisplayChange={setSelectedDisplay}
+            onThresholdsUpdate={setDisplayThresholds}
+            onLoadingChange={setDisplayLoading}
+            onErrorChange={setDisplayError}
+          />
+          
           <CollectionDataTable 
             collectionName={selectedCollection}
             sampleData={sampleData}
