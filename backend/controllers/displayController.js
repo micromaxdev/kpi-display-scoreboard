@@ -25,34 +25,6 @@ export async function getDisplayByName(req, res) {
     }
 }   
 
-export async function addThresholdId(req, res) {
-    const { displayName, thresholdId } = req.body;
-    try {
-        const updatedDisplay = await displayService.addThresholdId(displayName, thresholdId);
-        if (!updatedDisplay) {
-            return res.status(404).json({ success: false, message: 'Display not found' });
-        }
-        res.json({ success: true, display: updatedDisplay });
-    } catch (error) {
-        console.error('Error assigning threshold ID:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-}
-
-export async function deleteThresholdId(req, res) {
-    const { displayName, thresholdId } = req.body;
-    try {
-        const updatedDisplay = await displayService.deleteThresholdId(displayName, thresholdId);
-        if (!updatedDisplay) {
-            return res.status(404).json({ success: false, message: 'Display not found' });
-        }
-        res.json({ success: true, display: updatedDisplay });
-    } catch (error) {
-        console.error('Error removing threshold ID:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-}
-
 export async function deleteDisplay(req, res) {
     const { displayName } = req.params;
     try {
@@ -94,5 +66,47 @@ export  async function saveOrUpdateDisplay(req, res){
         console.error('Error saving or updating display:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
+}
 
+export async function addThresholdId(req, res) {
+    const { displayName, thresholdId } = req.body;
+    try {
+        const updatedDisplay = await displayService.addThresholdId(displayName, thresholdId);
+        if (!updatedDisplay) {
+            return res.status(404).json({ success: false, message: 'Display not found' });
+        }
+        res.json({ success: true, display: updatedDisplay });
+    } catch (error) {
+        console.error('Error assigning threshold ID:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+export async function deleteThresholdId(req, res) {
+    const { displayName, thresholdId } = req.body;
+    try {
+        const updatedDisplay = await displayService.deleteThresholdId(displayName, thresholdId);
+        if (!updatedDisplay) {
+            return res.status(404).json({ success: false, message: 'Display not found' });
+        }
+        res.json({ success: true, display: updatedDisplay });
+    } catch (error) {
+        console.error('Error removing threshold ID:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+export async function reorderThresholds(req, res) {
+    const { displayName } = req.params;
+    const { thresholdIds } = req.body;
+    try {
+        const updatedDisplay = await displayService.reorderThresholds(displayName, thresholdIds);
+        if (!updatedDisplay) {
+            return res.status(404).json({ success: false, message: 'Display not found' });
+        }
+        res.json({ success: true, display: updatedDisplay });
+    } catch (error) {
+        console.error('Error reordering thresholds:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
 }

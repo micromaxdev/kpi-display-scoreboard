@@ -35,3 +35,11 @@ export async function addThresholdId(displayName, thresholdId) {
 export async function deleteDisplay(displayName) {
     return displayModel.findOneAndDelete({ displayName });
 }
+
+export async function reorderThresholds(displayName, newOrder) {
+    return displayModel.findOneAndUpdate(
+        { displayName },
+        { thresholdIds: newOrder },
+        { new: true }
+    );
+}
