@@ -11,6 +11,16 @@ export async function setDisplay(req, res) {
     }
 }
 
+export async function getAllDisplays(req, res) {
+    try {
+        const displays = await displayService.getAllDisplays();
+        res.json({ success: true, displays });
+    } catch (error) {
+        console.error('Error fetching displays:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
 export async function getDisplayByName(req, res) {
     const { displayName } = req.params;
     try {

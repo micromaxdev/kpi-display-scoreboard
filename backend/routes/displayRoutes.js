@@ -1,8 +1,9 @@
 import express from 'express';
-import { setDisplay, getDisplayByName, addThresholdId, deleteThresholdId, deleteDisplay, saveOrUpdateDisplay,reorderThresholds } from '../controllers/displayController.js';
+import { setDisplay, getDisplayByName, addThresholdId, deleteThresholdId, deleteDisplay, saveOrUpdateDisplay,reorderThresholds,getAllDisplays } from '../controllers/displayController.js';
 const router = express.Router();
 
 router.post('/', setDisplay);
+router.get('/', getAllDisplays);
 router.post('/save', saveOrUpdateDisplay);
 router.get('/:displayName', getDisplayByName);
 router.post('/:displayName/thresholds', addThresholdId);

@@ -9,7 +9,9 @@ export async function setDisplay(displayName, displayData) {
         { upsert: true, new: true }
     );
 }
-
+export async function getAllDisplays() {
+    return displayModel.find({}, '-_id -__v -createdAt');
+}
 export async function getDisplayByName(displayName) {
     return displayModel.findOne({ displayName }, '-_id -__v -createdAt').populate('thresholdIds', '-__v -createdAt');
 }
