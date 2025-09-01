@@ -25,11 +25,12 @@ export const validateThresholdForm = (formData) => {
     errors.push('Field is required');
   }
 
-  if (!greenThreshold || greenThreshold === '') {
+  // Accept 0 as valid
+  if (greenThreshold === undefined || greenThreshold === '') {
     errors.push('Green threshold is required');
   }
 
-  if (!amberThreshold || amberThreshold === '') {
+  if (amberThreshold === undefined || amberThreshold === '') {
     errors.push('Amber threshold is required');
   }
 

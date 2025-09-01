@@ -3,7 +3,7 @@
  */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchCollections, fetchCollectionFields, saveThreshold, fetchCollectionSampleData, analyzeKPIData, saveDisplayConfig } from '../services/apiService';
+import { fetchCollections, fetchCollectionFields, saveThreshold, fetchCollectionSampleData, analyzeKPIData, saveDisplayConfig, fetchSingleThreshold } from '../services/apiService';
 import { filterMeasurableFields } from '../utils/fieldUtils';
 import { validateThresholdForm, createMessage, getInitialFormState, checkThresholds } from '../utils/formUtils';
 
@@ -167,6 +167,44 @@ export const useThresholdForm = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
   const [thresholdValidation, setThresholdValidation] = useState({ isValid: true, message: '' });
+  const [autoPopulating, setAutoPopulating] = useState(false);
+
+  /**
+   * Fetch and populate threshold data and direction when collection and field are chosen
+   */
+  const fetchAndPopulateThreshold = async (collectionName, field) => {
+    if (!collectionName || !field) return;
+    setAutoPopulating(true);
+    try {
+      const result = await fetchSingleThreshold(collectionName, field);
+      if (result.success && result.threshold) {
+        setFormData(prev => ({
+          ...prev,
+          greenThreshold: result.threshold.green,
+          amberThreshold: result.threshold.amber,
+          direction: result.threshold.direction,
+        }));
+      } else {
+        // Clear threshold fields and direction if not found
+        setFormData(prev => ({
+          ...prev,
+          greenThreshold: '',
+          amberThreshold: '',
+          direction: '',
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching threshold:', error);
+      setFormData(prev => ({
+        ...prev,
+        greenThreshold: '',
+        amberThreshold: '',
+        direction: '',
+      }));
+    } finally {
+      setAutoPopulating(false);
+    }
+  };
 
   // Real-time threshold validation
   const validateThresholds = async () => {
@@ -322,11 +360,13 @@ export const useThresholdForm = () => {
     message,
     loading,
     thresholdValidation,
+    autoPopulating,
     updateField,
     resetForm,
     clearMessage,
     handlePreview,
     handleSaveAndPreview,
+    fetchAndPopulateThreshold,
     validation: validateThresholdForm(formData)
   };
 };

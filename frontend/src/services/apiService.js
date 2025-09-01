@@ -279,7 +279,6 @@ export const fetchDisplayConfig = async (displayName) => {
   }
 };
 
-
 /**
  * Downloads Excel file with KPI analysis data
  * @param {object} downloadData - Download configuration object
@@ -499,5 +498,19 @@ export const uploadFileToCollection = async (collectionName, file) => {
       message: 'Unexpected error occurred',
       error: 'UNEXPECTED_ERROR'
     };
+  }
+};
+
+/**
+ * Fetch a single threshold by collection and field
+ */
+export const fetchSingleThreshold = async (collectionName, field) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/threshold-api/single?collectionName=${encodeURIComponent(collectionName)}&field=${encodeURIComponent(field)}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching single threshold:', error);
+    return { success: false, threshold: null, error: error.message };
   }
 };

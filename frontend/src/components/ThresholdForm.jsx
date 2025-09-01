@@ -9,7 +9,7 @@ import {
   Message,
   CloseBtn
 } from '../styles/ThresholdForm.styled';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useThresholdFormWithData } from '../hooks/useThresholdForm';
 import { getDirectionSuggestion } from '../utils/fieldUtils';
 import CollectionDataTable from './CollectionDataTable';
@@ -37,7 +37,9 @@ const ThresholdForm = () => {
     handlePreview,
     handleSaveAndPreview,
     validation,
-    refetchCollections
+    refetchCollections,
+    fetchAndPopulateThreshold,
+    autoPopulating // <-- new state from hook
   } = useThresholdFormWithData();
 
   const {
@@ -83,6 +85,30 @@ const ThresholdForm = () => {
     // Refresh collections list to show the newly uploaded collection
     refetchCollections();
   };
+
+  // Auto-populate thresholds and direction when both collection and field are chosen
+  useEffect(() => {
+    if (selectedCollection && selectedField) {
+      fetchAndPopulateThreshold(selectedCollection, selectedField);
+    }
+  }, [selectedCollection, selectedField]);
+
+  // Separate loading state for form submission
+  const [submitting, setSubmitting] = useState(false);
+  const safeValidation = validation || { isValid: true };
+
+  // Wrap handlePreview and handleSaveAndPreview to set submitting state
+  const handlePreviewWithLoading = async (e) => {
+    setSubmitting(true);
+    await handlePreview(e);
+    setSubmitting(false);
+  };
+  const handleSaveAndPreviewWithLoading = async (e) => {
+    setSubmitting(true);
+    await handleSaveAndPreview(e);
+    setSubmitting(false);
+  };
+
   // Function to get threshold description based on direction
   const getThresholdDescription = () => {
     if (!greenThreshold || !amberThreshold) {
@@ -110,6 +136,8 @@ const ThresholdForm = () => {
       };
     }
   };
+
+  const buttonsEnabled = safeValidation.isValid && !submitting;
 
   return (
     <Page>
@@ -163,11 +191,11 @@ const ThresholdForm = () => {
             </ConfigSection>
 
             <FormActions
-              loading={loading}
-              isValid={validation.isValid}
-              onPreview={handlePreview}
+              loading={submitting}
+              isValid={buttonsEnabled}
+              onPreview={handlePreviewWithLoading}
               onReset={resetForm}
-              onSaveAndPreview={handleSaveAndPreview}
+              onSaveAndPreview={handleSaveAndPreviewWithLoading}
             />
           </CardForm>
 
