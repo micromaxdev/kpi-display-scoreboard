@@ -4,6 +4,32 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
  * Display Service - Handles all display-related API operations
  */
 export class DisplayService {
+  /**
+   * Fetch available display options for populating display list
+   * @returns {Promise<Array>} Array of display option objects
+   */
+  static async getDisplayOptions() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/display-api`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch display options: ${response.status} ${response.statusText}`);
+      }
+      const data = await response.json();
+      if (!data.success || !Array.isArray(data.displays)) {
+        throw new Error(data.message || 'Invalid display options response');
+      }
+      // Map to display option objects for UI
+      return data.displays.map(d => ({
+        displayName: d.displayName,
+        thresholdIds: d.thresholdIds,
+        time: d.time,
+        updatedAt: d.updatedAt
+      }));
+    } catch (error) {
+      console.error('Error fetching display options:', error);
+      return [];
+    }
+  }
   
   /**
    * Fetch display configuration and thresholds
@@ -171,18 +197,18 @@ export class DisplayService {
         };
     }
     };
-  /**
-   * Get list of available display options
-   * @returns {Array<string>} Array of display names
-   */
-  static getDisplayOptions() {
-    return [
-      'dashboard',
-      'sales-board',
-      'operations-display',
-      'executive-summary'
-    ];
-  }
+  // /**
+  //  * Get list of available display options
+  //  * @returns {Array<string>} Array of display names
+  //  */
+  // static getDisplayOptions() {
+  //   return [
+  //     'dashboard',
+  //     'sales-board',
+  //     'operations-display',
+  //     'executive-summary'
+  //   ];
+  // }
 }
 
 export default DisplayService;

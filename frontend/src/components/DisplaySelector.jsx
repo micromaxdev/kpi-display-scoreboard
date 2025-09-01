@@ -59,11 +59,23 @@ const DisplaySelector = ({
     handleDragOver,
     handleDragLeave,
     handleDrop,
-    handleDragEnd,
-    displayOptions
+    handleDragEnd
   } = useDisplaySelector();
 
-  // Local state for controlled mode drag and drop
+  // Local state for display options
+  const [displayOptions, setDisplayOptions] = React.useState([]);
+  const [displayOptionsLoading, setDisplayOptionsLoading] = React.useState(false);
+
+  // Fetch display options on mount
+  React.useEffect(() => {
+    const fetchOptions = async () => {
+      setDisplayOptionsLoading(true);
+      const options = await DisplayService.getDisplayOptions();
+      setDisplayOptions(options);
+      setDisplayOptionsLoading(false);
+    };
+    fetchOptions();
+  }, []);
   const [localDraggedItem, setLocalDraggedItem] = React.useState(null);
   const [localDragOverIndex, setLocalDragOverIndex] = React.useState(null);
   const [localReorderLoading, setLocalReorderLoading] = React.useState(false);
@@ -347,11 +359,13 @@ const DisplaySelector = ({
             disabled={currentLoading}
           >
             <option value="">Select a playlist...</option>
-            {displayOptions.map(option => (
-              <option key={option} value={option}>
-                {option.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-              </option>
-            ))}
+            {displayOptions
+              .filter(option => option && typeof option.displayName === 'string')
+              .map(option => (
+                <option key={option.displayName} value={option.displayName}>
+                  {option.displayName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </option>
+              ))}
           </DisplayDropdown>
           
           {currentSelectedDisplay && (
