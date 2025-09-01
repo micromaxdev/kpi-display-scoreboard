@@ -73,22 +73,6 @@ export const TimeLabel = styled.label`
   white-space: nowrap;
 `;
 
-export const TimeInput = styled.input`
-  width: 60px;
-  padding: 6px 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 13px;
-  text-align: center;
-  background: white;
-  
-  &:focus {
-    outline: none;
-    border-color: #4299e1;
-    box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.1);
-  }
-`;
-
 export const TimeUnit = styled.span`
   font-size: 13px;
   color: #718096;
@@ -131,25 +115,6 @@ export const ThresholdsGrid = styled.div`
   margin-top: 16px;
 `;
 
-export const ThresholdTab = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  cursor: ${props => props.$isDragging ? 'grabbing' : 'grab'};
-  transform: ${props => props.$isDragging ? 'rotate(2deg)' : 'none'};
-  box-shadow: ${props => props.$isDragging ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none'};
-  opacity: ${props => props.$isDragging ? 0.8 : 1};
-  
-  &:hover {
-    background: #edf2f7;
-    border-color: #cbd5e0;
-  }
-`;
 
 export const DragHandle = styled.div`
   display: flex;
@@ -384,4 +349,57 @@ export const DeleteButton = styled.button`
     opacity: 0.6;
     cursor: not-allowed;
   }
+`;
+
+export const HeaderActionsContainer = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+export const CycleTimeInput = styled.input`
+  width: 70px;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+  text-align: center;
+  background: white;
+  color: black;
+  font-weight: bold;
+  
+  &:focus {
+    outline: none;
+    border-color: #4299e1;
+    box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.1);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+export const FormattedTimeDisplay = styled.div`
+  font-size: 11px;
+  color: #718096;
+  margin-left: 8px;
+  white-space: nowrap;
+`;
+
+export const ErrorCloseButton = styled.button`
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  margin-left: 8px;
+  font-size: 16px;
+  
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+export const DynamicThresholdTab = styled(ThresholdTab)`
+  opacity: ${props => props.$dragOverIndex === props.$index ? 0.5 : 1};
+  transform: ${props => props.$dragOverIndex === props.$index ? 'scale(1.05)' : 'none'};
 `;

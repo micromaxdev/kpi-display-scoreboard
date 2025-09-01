@@ -5,6 +5,46 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
  */
 export class DisplayService {
   /**
+   * Create a new display
+   * @param {string} displayName - Name of the new display
+   * @param {number} time - Cycle time for the display
+   * @returns {Promise<Object>} Result of creation
+   */
+  static async createDisplay(displayName, time) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/display-api`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ displayName, time })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error creating display:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Delete a display by name
+   * @param {string} displayName - Name of the display to delete
+   * @returns {Promise<Object>} Result of deletion
+   */
+  static async deleteDisplay(displayName) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/display-api/${displayName}`, {
+        method: 'DELETE'
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error deleting display:', error);
+      return { success: false, error: error.message };
+    }
+  }
+  /**
    * Fetch available display options for populating display list
    * @returns {Promise<Array>} Array of display option objects
    */

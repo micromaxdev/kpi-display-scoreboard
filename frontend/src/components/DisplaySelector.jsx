@@ -1,16 +1,13 @@
-import React from 'react';
 import {
   DisplaySection,
   SectionHeader,
   DisplayDropdown,
   TimeSettingContainer,
   TimeLabel,
-  TimeInput,
   TimeUnit,
   TimeButton,
   ThresholdsContainer,
   ThresholdsGrid,
-  ThresholdTab,
   DragHandle,
   OrderNumber,
   ThresholdInfo,
@@ -27,10 +24,18 @@ import {
   ConfirmationBody,
   ConfirmationActions,
   CancelButton,
-  DeleteButton
+  DeleteButton,
+  HeaderActionsContainer,
+  CycleTimeInput,
+  FormattedTimeDisplay,
+  ErrorCloseButton,
+  DynamicThresholdTab
 } from '../styles/DisplaySelector.styled';
 import useDisplaySelector from '../hooks/useDisplaySelector';
-import DisplayService from '../services/displayService';
+import useDisplayTime from '../hooks/useDisplayTime';
+import useDisplayOptions from '../hooks/useDisplayOptions';
+import useConfirmationModal from '../hooks/useConfirmationModal';
+import useControlledDisplay from '../hooks/useControlledDisplay';
 
 
 const DisplaySelector = ({ 
@@ -43,6 +48,7 @@ const DisplaySelector = ({
   onLoadingChange,
   onErrorChange
 }) => {
+  // Original hook for uncontrolled mode
   const {
     selectedDisplay,
     displayThresholds,
@@ -62,70 +68,60 @@ const DisplaySelector = ({
     handleDragEnd
   } = useDisplaySelector();
 
-  // Local state for display options
-  const [displayOptions, setDisplayOptions] = React.useState([]);
-  const [displayOptionsLoading, setDisplayOptionsLoading] = React.useState(false);
-
-  // Fetch display options on mount
-  React.useEffect(() => {
-    const fetchOptions = async () => {
-      setDisplayOptionsLoading(true);
-      const options = await DisplayService.getDisplayOptions();
-      setDisplayOptions(options);
-      setDisplayOptionsLoading(false);
-    };
-    fetchOptions();
-  }, []);
-  const [localDraggedItem, setLocalDraggedItem] = React.useState(null);
-  const [localDragOverIndex, setLocalDragOverIndex] = React.useState(null);
-  const [localReorderLoading, setLocalReorderLoading] = React.useState(false);
-
-  // Confirmation modal state
-  const [showConfirmation, setShowConfirmation] = React.useState(false);
-  const [thresholdToDelete, setThresholdToDelete] = React.useState(null);
-
-  // Time setting state
-  const [displayTime, setDisplayTime] = React.useState(30);
-  const [isTimeUpdating, setIsTimeUpdating] = React.useState(false);
-
-  // Debug: Add console.log to see state changes
-  console.log('DisplayTime state:', displayTime, 'Type:', typeof displayTime);
-
   // Use props if provided (controlled mode) or hook state (uncontrolled mode)
   const currentSelectedDisplay = propSelectedDisplay !== undefined ? propSelectedDisplay : selectedDisplay;
   const currentDisplayThresholds = propDisplayThresholds !== undefined ? propDisplayThresholds : displayThresholds;
   const currentLoading = propLoading !== undefined ? propLoading : loading;
   const currentError = propError !== undefined ? propError : error;
 
+  // Custom hooks for specific functionality
+  const { getFilteredOptions, formatDisplayName } = useDisplayOptions();
+  
+  const { 
+    displayTime, 
+    isTimeUpdating, 
+    handleTimeUpdate: updateDisplayTime, 
+    handleTimeChange, 
+    handleTimeBlur, 
+    getFormattedTime 
+  } = useDisplayTime(currentSelectedDisplay);
+  
+  const { 
+    showConfirmation, 
+    itemToDelete: thresholdToDelete, 
+    openConfirmation, 
+    closeConfirmation, 
+    confirmAction 
+  } = useConfirmationModal();
+  
+  const {
+    localDraggedItem,
+    localDragOverIndex,
+    localReorderLoading,
+    handleDisplayChangeControlled,
+    handleThresholdRemoveControlled,
+    handleDragStartControlled,
+    handleDragOverControlled,
+    handleDragLeaveControlled,
+    handleDropControlled,
+    handleDragEndControlled
+  } = useControlledDisplay();
+
+  // Debug: Add console.log to see state changes
+  console.log('DisplayTime state:', displayTime, 'Type:', typeof displayTime);
+
   const handleDisplayChangeWrapper = async (e) => {
     const displayName = e.target.value;
     
-    // If controlled mode, call prop handler AND fetch thresholds
+    // If controlled mode, call controlled handler
     if (onDisplayChange) {
-      onDisplayChange(displayName);
-      
-      // Fetch thresholds for controlled mode
-      if (displayName && onThresholdsUpdate && onLoadingChange && onErrorChange) {
-        try {
-          onLoadingChange(true);
-          onErrorChange(null);
-          
-          const result = await DisplayService.fetchDisplayConfig(displayName);
-          
-          if (result.success) {
-            onThresholdsUpdate(result.thresholds);
-          } else {
-            onThresholdsUpdate([]);
-            onErrorChange(result.error || 'No thresholds found for this display');
-          }
-        } catch (err) {
-          console.error('Error fetching display thresholds:', err);
-          onErrorChange(err.message || 'Failed to fetch display thresholds');
-          onThresholdsUpdate([]);
-        } finally {
-          onLoadingChange(false);
-        }
-      }
+      await handleDisplayChangeControlled(
+        displayName, 
+        onDisplayChange, 
+        onThresholdsUpdate, 
+        onLoadingChange, 
+        onErrorChange
+      );
     } else {
       // If uncontrolled mode, use hook handler
       hookHandleDisplayChange(displayName);
@@ -135,98 +131,32 @@ const DisplaySelector = ({
   const handleThresholdRemove = (thresholdId) => {
     // Find the threshold to delete for confirmation display
     const threshold = currentDisplayThresholds.find(t => t._id === thresholdId);
-    setThresholdToDelete(threshold);
-    setShowConfirmation(true);
+    openConfirmation(threshold);
   };
 
   const confirmDeleteThreshold = async () => {
-    if (!thresholdToDelete) return;
+    await confirmAction(async (threshold) => {
+      const thresholdId = threshold._id;
 
-    const thresholdId = thresholdToDelete._id;
-
-    if (onThresholdsUpdate) {
-      // Controlled mode - call parent remove logic or DisplayService
-      try {
-        const result = await DisplayService.removeThreshold(currentSelectedDisplay, thresholdId);
-        
-        if (result.success) {
-          const updatedThresholds = currentDisplayThresholds.filter(t => t._id !== thresholdId);
-          onThresholdsUpdate(updatedThresholds);
-        } else {
-          onErrorChange && onErrorChange(result.error || 'Failed to remove threshold');
-        }
-      } catch (err) {
-        console.error('Error removing threshold:', err);
-        onErrorChange && onErrorChange(err.message || 'Failed to remove threshold');
+      if (onThresholdsUpdate) {
+        // Controlled mode - use controlled handler
+        await handleThresholdRemoveControlled(
+          currentSelectedDisplay,
+          thresholdId,
+          currentDisplayThresholds,
+          onThresholdsUpdate,
+          onErrorChange
+        );
+      } else {
+        // Uncontrolled mode - use hook
+        await removeThreshold(thresholdId);
       }
-    } else {
-      // Uncontrolled mode - use hook
-      await removeThreshold(thresholdId);
-    }
-
-    // Close confirmation modal
-    setShowConfirmation(false);
-    setThresholdToDelete(null);
+    });
   };
-
-  const cancelDeleteThreshold = () => {
-    setShowConfirmation(false);
-    setThresholdToDelete(null);
-  };
-
-  // Fetch display config to get current time when display changes
-  React.useEffect(() => {
-    const fetchDisplayTime = async () => {
-      if (currentSelectedDisplay) {
-        try {
-          const result = await DisplayService.fetchDisplayConfig(currentSelectedDisplay);
-          if (result.success && result.display?.time) {
-            setDisplayTime(result.display.time);
-          }
-        } catch (err) {
-          console.error('Error fetching display time:', err);
-        }
-      }
-    };
-
-    fetchDisplayTime();
-  }, [currentSelectedDisplay]);
 
   // Handle time setting update
-  const handleTimeUpdate = async () => {
-    if (!currentSelectedDisplay || !currentDisplayThresholds) return;
-    
-    // Ensure we have a valid number
-    const timeValue = parseInt(displayTime);
-    if (isNaN(timeValue) || timeValue < 5 || timeValue > 3600) {
-      alert('Time must be between 5 and 3600 seconds');
-      return;
-    }
-    
-    try {
-      setIsTimeUpdating(true);
-      const thresholdIds = currentDisplayThresholds.map(t => t._id);
-      
-      console.log('Updating display config:', {
-        displayName: currentSelectedDisplay,
-        time: timeValue,
-        thresholdIds
-      });
-      
-      const result = await DisplayService.updateDisplayConfig(currentSelectedDisplay, timeValue, thresholdIds);
-      
-      if (result.success) {
-        console.log(`Time updated successfully to ${timeValue}s`);
-      } else {
-        console.error('Update failed:', result.error);
-        alert(`Failed to update time: ${result.error || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Error updating time settings:', error);
-      alert(`Failed to update time settings: ${error.message}`);
-    } finally {
-      setIsTimeUpdating(false);
-    }
+  const handleTimeUpdateWrapper = async () => {
+    await updateDisplayTime(currentDisplayThresholds);
   };
 
   const handleErrorClear = () => {
@@ -237,14 +167,11 @@ const DisplaySelector = ({
     }
   };
 
-    // Drag and drop handlers for controlled mode
+  // Drag and drop handlers for controlled mode
   const handleDragStartWrapper = (e, index) => {
     if (onThresholdsUpdate) {
-      // Controlled mode - handle locally
-      setLocalDraggedItem(index);
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/html', e.target.outerHTML);
-      e.dataTransfer.setDragImage(e.target, 0, 0);
+      // Controlled mode - use controlled handler
+      handleDragStartControlled(e, index);
     } else {
       // Uncontrolled mode - use hook
       handleDragStart(e, index);
@@ -256,7 +183,7 @@ const DisplaySelector = ({
     e.dataTransfer.dropEffect = 'move';
     if (onThresholdsUpdate) {
       // Controlled mode
-      setLocalDragOverIndex(index);
+      handleDragOverControlled(e, index);
     } else {
       // Uncontrolled mode
       handleDragOver(e, index);
@@ -266,7 +193,7 @@ const DisplaySelector = ({
   const handleDragLeaveWrapper = () => {
     if (onThresholdsUpdate) {
       // Controlled mode
-      setLocalDragOverIndex(null);
+      handleDragLeaveControlled();
     } else {
       // Uncontrolled mode
       handleDragLeave();
@@ -278,45 +205,14 @@ const DisplaySelector = ({
     
     if (onThresholdsUpdate) {
       // Controlled mode
-      setLocalDragOverIndex(null);
-      
-      if (localDraggedItem === null || localDraggedItem === dropIndex) {
-        setLocalDraggedItem(null);
-        return;
-      }
-
-      // Create new ordered array
-      const newThresholds = [...currentDisplayThresholds];
-      const draggedThreshold = newThresholds[localDraggedItem];
-      
-      // Remove dragged item
-      newThresholds.splice(localDraggedItem, 1);
-      
-      // Insert at new position
-      newThresholds.splice(dropIndex, 0, draggedThreshold);
-      
-      // Update parent state immediately
-      onThresholdsUpdate(newThresholds);
-      
-      // Save to backend
-      if (currentSelectedDisplay) {
-        try {
-          setLocalReorderLoading(true);
-          const thresholdIds = newThresholds.map(t => t._id);
-          const result = await DisplayService.reorderThresholds(currentSelectedDisplay, thresholdIds);
-          
-          if (!result.success) {
-            onErrorChange && onErrorChange(result.error || 'Failed to reorder thresholds');
-          }
-        } catch (err) {
-          console.error('Error reordering thresholds:', err);
-          onErrorChange && onErrorChange(err.message || 'Failed to reorder thresholds');
-        } finally {
-          setLocalReorderLoading(false);
-        }
-      }
-      
-      setLocalDraggedItem(null);
+      await handleDropControlled(
+        e, 
+        dropIndex, 
+        currentSelectedDisplay,
+        currentDisplayThresholds,
+        onThresholdsUpdate,
+        onErrorChange
+      );
     } else {
       // Uncontrolled mode
       handleDrop(e, dropIndex);
@@ -326,8 +222,7 @@ const DisplaySelector = ({
   const handleDragEndWrapper = () => {
     if (onThresholdsUpdate) {
       // Controlled mode
-      setLocalDraggedItem(null);
-      setLocalDragOverIndex(null);
+      handleDragEndControlled();
     } else {
       // Uncontrolled mode
       handleDragEnd();
@@ -352,100 +247,56 @@ const DisplaySelector = ({
             Select a playlist to view its configured reports
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <HeaderActionsContainer>
           <DisplayDropdown
             value={currentSelectedDisplay}
             onChange={handleDisplayChangeWrapper}
             disabled={currentLoading}
           >
             <option value="">Select a playlist...</option>
-            {displayOptions
-              .filter(option => option && typeof option.displayName === 'string')
-              .map(option => (
-                <option key={option.displayName} value={option.displayName}>
-                  {option.displayName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                </option>
-              ))}
+            {getFilteredOptions().map(option => (
+              <option key={option.displayName} value={option.displayName}>
+                {formatDisplayName(option.displayName)}
+              </option>
+            ))}
           </DisplayDropdown>
           
           {currentSelectedDisplay && (
             <TimeSettingContainer>
               <TimeLabel>Cycle Time:</TimeLabel>
-              <input
+              <CycleTimeInput
                 type="number"
                 min="5"
                 max="3600"
                 value={displayTime}
-                onChange={(e) => {
-                  console.log('Input onChange triggered:', e.target.value);
-                  setDisplayTime(e.target.value);
-                }}
-                onBlur={(e) => {
-                  console.log('Input onBlur triggered:', e.target.value);
-                  const value = parseInt(e.target.value);
-                  if (isNaN(value) || value < 5) {
-                    setDisplayTime(5);
-                  } else if (value > 3600) {
-                    setDisplayTime(3600);
-                  } else {
-                    setDisplayTime(value);
-                  }
-                }}
+                onChange={(e) => handleTimeChange(e.target.value)}
+                onBlur={(e) => handleTimeBlur(e.target.value)}
                 disabled={isTimeUpdating}
                 placeholder="seconds"
-                style={{
-                  width: '70px',
-                  padding: '6px 8px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '4px',
-                  fontSize: '13px',
-                  textAlign: 'center',
-                  background: 'white',
-                  color: 'black',
-                  fontWeight: 'bold'
-                }}
               />
               <TimeUnit>sec</TimeUnit>
               <TimeButton
-                onClick={handleTimeUpdate}
+                onClick={handleTimeUpdateWrapper}
                 disabled={isTimeUpdating || !currentSelectedDisplay}
               >
                 {isTimeUpdating ? 'Saving...' : 'Save'}
               </TimeButton>
-              <div style={{ 
-                fontSize: '11px', 
-                color: '#718096',
-                marginLeft: '8px',
-                whiteSpace: 'nowrap'
-              }}>
-                {displayTime >= 60 
-                  ? `(${Math.floor(displayTime / 60)}m ${displayTime % 60}s)`
-                  : `(${displayTime} seconds)`
-                }
-              </div>
+              <FormattedTimeDisplay>
+                {getFormattedTime()}
+              </FormattedTimeDisplay>
             </TimeSettingContainer>
           )}
           
           {currentLoading && <LoadingSpinner />}
-        </div>
+        </HeaderActionsContainer>
       </SectionHeader>
 
       {currentError && (
         <ErrorMessage>
           <span>⚠️ {currentError}</span>
-          <button 
-            onClick={handleErrorClear}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: 'inherit', 
-              cursor: 'pointer',
-              marginLeft: '8px',
-              fontSize: '16px'
-            }}
-          >
+          <ErrorCloseButton onClick={handleErrorClear}>
             ×
-          </button>
+          </ErrorCloseButton>
         </ErrorMessage>
       )}
 
@@ -461,19 +312,17 @@ const DisplaySelector = ({
           
           <ThresholdsGrid>
             {currentDisplayThresholds.map((threshold, index) => (
-              <ThresholdTab 
+              <DynamicThresholdTab 
                 key={threshold._id || index}
                 draggable={!currentReorderLoading}
                 $isDragging={currentDraggedItem === index}
+                $dragOverIndex={currentDragOverIndex}
+                $index={index}
                 onDragStart={(e) => handleDragStartWrapper(e, index)}
                 onDragOver={(e) => handleDragOverWrapper(e, index)}
                 onDragLeave={handleDragLeaveWrapper}
                 onDrop={(e) => handleDropWrapper(e, index)}
                 onDragEnd={handleDragEndWrapper}
-                style={{
-                  opacity: currentDragOverIndex === index ? 0.5 : 1,
-                  transform: currentDragOverIndex === index ? 'scale(1.05)' : 'none'
-                }}
               >
                 <OrderNumber>{index + 1}</OrderNumber>
                 <DragHandle title="Drag to reorder">⋮⋮</DragHandle>
@@ -488,7 +337,7 @@ const DisplaySelector = ({
                 >
                   {removingThreshold === threshold._id ? '...' : '×'}
                 </RemoveButton>
-              </ThresholdTab>
+              </DynamicThresholdTab>
             ))}
           </ThresholdsGrid>
         </ThresholdsContainer>
@@ -512,22 +361,22 @@ const DisplaySelector = ({
               <p>Are you sure you want to delete this threshold? This action cannot be undone.</p>
               
               <div className="threshold-info">
-                <div className="collection">{thresholdToDelete.collectionName}</div>
-                <div className="field">{thresholdToDelete.field}</div>
+                <div className="collection">{thresholdToDelete?.collectionName}</div>
+                <div className="field">{thresholdToDelete?.field}</div>
               </div>
               
               <p>This will remove the threshold from the "{currentSelectedDisplay}" display configuration.</p>
             </ConfirmationBody>
             
             <ConfirmationActions>
-              <CancelButton onClick={cancelDeleteThreshold}>
+              <CancelButton onClick={closeConfirmation}>
                 Cancel
               </CancelButton>
               <DeleteButton 
                 onClick={confirmDeleteThreshold}
-                disabled={removingThreshold === thresholdToDelete._id}
+                disabled={removingThreshold === thresholdToDelete?._id}
               >
-                {removingThreshold === thresholdToDelete._id ? 'Deleting...' : 'Delete Threshold'}
+                {removingThreshold === thresholdToDelete?._id ? 'Deleting...' : 'Delete Threshold'}
               </DeleteButton>
             </ConfirmationActions>
           </ConfirmationDialog>
