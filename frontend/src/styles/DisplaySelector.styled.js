@@ -115,6 +115,25 @@ export const ThresholdsGrid = styled.div`
   margin-top: 16px;
 `;
 
+export const ThresholdTab = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: ${props => props.$isDragging ? 'grabbing' : 'grab'};
+  transform: ${props => props.$isDragging ? 'rotate(2deg)' : 'none'};
+  box-shadow: ${props => props.$isDragging ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none'};
+  opacity: ${props => props.$isDragging ? 0.8 : 1};
+  
+  &:hover {
+    background: #edf2f7;
+    border-color: #cbd5e0;
+  }
+`;
 
 export const DragHandle = styled.div`
   display: flex;
