@@ -104,38 +104,25 @@ const KPIAnalysisPage = () => {
     const pollingTime = content.display.time; // Use configured time
     console.log(`Setting up polling every ${pollingTime}s (will use current threshold index: ${currentThresholdIndex})`);
 
-    // Use the same fetchContent function but call it on interval
+    // Polling function uses currentThresholdIndex from React state
     const refreshData = async () => {
       try {
-        // Get fresh current values instead of closure variables
-        const currentContent = JSON.parse(localStorage.getItem(`displayContent_${displayName}`) || 'null');
-        const currentIndex = currentContent?.currentThresholdIndex || 0;
-        const currentThresholdCount = currentContent?.display?.thresholdIds?.length || 0;
-        
-        console.log(`POLLING: Refreshing data and config for threshold ${currentIndex + 1}/${currentThresholdCount}`);
-        
+        // Always use currentThresholdIndex from state
         const displayRes = await fetchDisplayConfig(displayName);
         if (displayRes.success && displayRes.display) {
           const display = displayRes.display;
-          
-          // CHECK FOR CONFIGURATION CHANGES
-          const oldThresholdCount = currentThresholdCount;
-          const newThresholdCount = display.thresholdIds.length;
-          
-          if (oldThresholdCount !== newThresholdCount) {
-            console.log(`THRESHOLD COUNT CHANGED: ${oldThresholdCount} → ${newThresholdCount}. Refreshing full configuration.`);
-            
-            // Reset threshold index if it's out of bounds
-            if (currentIndex >= newThresholdCount) {
-              console.log(`Resetting threshold index from ${currentIndex} to 0`);
-              setCurrentThresholdIndex(0);
-              return; // Exit and let the main useEffect handle the reset
-            }
+          const thresholdCount = display.thresholdIds?.length || 0;
+
+          // Reset threshold index if out of bounds
+          if (currentThresholdIndex >= thresholdCount) {
+            console.log(`Polling: threshold index ${currentThresholdIndex} out of bounds, resetting to 0`);
+            setCurrentThresholdIndex(0);
+            return;
           }
-          
-          if (display.thresholdIds && display.thresholdIds.length > 0 && currentIndex < display.thresholdIds.length) {
-            const currentThreshold = display.thresholdIds[currentIndex];
-            
+
+          if (display.thresholdIds && thresholdCount > 0 && currentThresholdIndex < thresholdCount) {
+            const currentThreshold = display.thresholdIds[currentThresholdIndex];
+
             if (currentThreshold?.collectionName && currentThreshold?.field) {
               const analysisRes = await analyzeKPIData({
                 collectionName: currentThreshold.collectionName,
@@ -144,19 +131,18 @@ const KPIAnalysisPage = () => {
                 amberThreshold: currentThreshold.amber,
                 direction: currentThreshold.direction
               });
-              
+
               if (analysisRes.success) {
                 // UPDATE BOTH DISPLAY CONFIG AND ANALYSIS DATA
                 const updatedContent = {
                   display: display, // Update display config with latest thresholds
                   analysisData: analysisRes.data,
                   currentThreshold: currentThreshold,
-                  currentThresholdIndex: currentIndex, // Use fresh current index
+                  currentThresholdIndex: currentThresholdIndex, // Use React state
                   lastUpdated: new Date().toISOString()
                 };
-                
+
                 setContent(updatedContent);
-                // Update ref immediately when content changes
                 thresholdIdsRef.current = display?.thresholdIds;
                 localStorage.setItem(`displayContent_${displayName}`, JSON.stringify(updatedContent));
                 console.log(`POLLING: Updated config & data for ${currentThreshold.collectionName}.${currentThreshold.field}`);
@@ -167,13 +153,14 @@ const KPIAnalysisPage = () => {
       } catch (err) {
         console.error('Polling error:', err);
       }
-    };    const pollingInterval = setInterval(refreshData, pollingTime * 1000);
-    
+    };
+    const pollingInterval = setInterval(refreshData, pollingTime * 1000);
+
     return () => {
       console.log('🧹 Cleaning up polling interval');
       clearInterval(pollingInterval);
     };
-  }, [content?.display?.time, displayName]); // Removed currentThresholdIndex dependency
+  }, [content?.display?.time, displayName, currentThresholdIndex]); // Add currentThresholdIndex dependency
 
     // THRESHOLD INDEX BOUNDS CHECK USEEFFECT
   useEffect(() => {
