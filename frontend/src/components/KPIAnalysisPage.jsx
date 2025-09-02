@@ -2,14 +2,15 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import {LastUpdatedTimestamp} from '../styles/KpiLayout.styled.js';
 import KPIAnalysisLayout from './KPIAnalysisLayout';
-import { fetchDisplayConfig, analyzeKPIData } from '../services/apiService';
+import { fetchDisplayConfig, analyzeKPIData, fetchScreenConfig } from '../services/apiService';
 
 
 const KPIAnalysisPage = () => {
-  const { displayName } = useParams();
+  const { displayName: screenName } = useParams(); // URL param is actually screenName
   
+  const [screenConfig, setScreenConfig] = useState(null);
   const [content, setContent] = useState(() => {
-    const saved = localStorage.getItem(`displayContent_${displayName}`);
+    const saved = localStorage.getItem(`screenContent_${screenName}`);
     return saved ? JSON.parse(saved) : null;
   });
 
@@ -23,67 +24,127 @@ const KPIAnalysisPage = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        console.log(`Fetching content for displayName: ${displayName}, currentThresholdIndex: ${currentThresholdIndex}`);
+        console.log(`Fetching content for screenName: ${screenName}, currentThresholdIndex: ${currentThresholdIndex}`);
         
-        // Fetch display configuration
-        const displayRes = await fetchDisplayConfig(displayName);
+        // First, fetch screen configuration
+        const screenRes = await fetchScreenConfig(screenName);
         
-        if (displayRes.success && displayRes.display) {
-          const display = displayRes.display;
-
-          // CYCLING: Use the current threshold index for analysis
-          if (display.thresholdIds && display.thresholdIds.length > 0) {
-            // VALIDATION: Ensure currentThresholdIndex is within bounds
-            if (currentThresholdIndex >= display.thresholdIds.length) {
-              console.warn(`currentThresholdIndex (${currentThresholdIndex}) out of bounds, resetting to 0`);
-              setCurrentThresholdIndex(0);
-              return;
-            }
-
-            // Use currentThresholdIndex for cycling through thresholds
-            const currentThreshold = display.thresholdIds[currentThresholdIndex];
-            
-            // VALIDATION: Check if threshold has required fields
-            if (!currentThreshold?.collectionName || !currentThreshold?.field) {
-              console.error(' Invalid threshold data:', currentThreshold);
-              return;
-            }
-
-            console.log(`ANALYZING THRESHOLD ${currentThresholdIndex + 1}/${display.thresholdIds.length}:`, {
-              index: currentThresholdIndex,
-              thresholdId: currentThreshold._id,
-              collection: currentThreshold.collectionName,
-              field: currentThreshold.field,
-              thresholds: { green: currentThreshold.green, amber: currentThreshold.amber },
-              direction: currentThreshold.direction
+        if (screenRes.success && screenRes.screen) {
+          const screen = screenRes.screen;
+          setScreenConfig(screen);
+          
+          // Check if screen has displayName configured
+          if (!screen.displayName) {
+            console.warn('Screen does not have a displayName configured:', screen);
+            setContent({
+              screen: screen,
+              display: null,
+              analysisData: null,
+              currentThreshold: null,
+              currentThresholdIndex: 0,
+              lastUpdated: new Date().toISOString(),
+              error: 'Screen does not have a playlist/display configured'
             });
-            
-            // Analyze data using the current threshold
-            const analysisRes = await analyzeKPIData({
-              collectionName: currentThreshold.collectionName,
-              field: currentThreshold.field,
-              greenThreshold: currentThreshold.green,
-              amberThreshold: currentThreshold.amber,
-              direction: currentThreshold.direction
-            });
-            
-            if (analysisRes.success) {
-              const contentData = {
-                display: display,
-                analysisData: analysisRes.data,
-                currentThreshold: currentThreshold,
-                currentThresholdIndex: currentThresholdIndex,
-                lastUpdated: new Date().toISOString()
-              };
-              
-              setContent(contentData);
-              // Update ref for stable access in intervals
-              thresholdIdsRef.current = display?.thresholdIds;
-              localStorage.setItem(`displayContent_${displayName}`, JSON.stringify(contentData));
-            } else {
-              console.warn('Analysis failed for threshold:', currentThreshold, 'Error:', analysisRes.error);
-            }
+            return;
           }
+          
+          // Fetch display configuration using displayName from screen
+          const displayName = screen.displayName.toLowerCase();
+          const displayRes = await fetchDisplayConfig(displayName);
+
+          if (displayRes.success && displayRes.display) {
+            const display = displayRes.display;
+
+            // CYCLING: Use the current threshold index for analysis
+            if (display.thresholdIds && display.thresholdIds.length > 0) {
+              // VALIDATION: Ensure currentThresholdIndex is within bounds
+              if (currentThresholdIndex >= display.thresholdIds.length) {
+                console.warn(`currentThresholdIndex (${currentThresholdIndex}) out of bounds, resetting to 0`);
+                setCurrentThresholdIndex(0);
+                return;
+              }
+
+              // Use currentThresholdIndex for cycling through thresholds
+              const currentThreshold = display.thresholdIds[currentThresholdIndex];
+              
+              // VALIDATION: Check if threshold has required fields
+              if (!currentThreshold?.collectionName || !currentThreshold?.field) {
+                console.error(' Invalid threshold data:', currentThreshold);
+                return;
+              }
+
+              console.log(`ANALYZING THRESHOLD ${currentThresholdIndex + 1}/${display.thresholdIds.length}:`, {
+                index: currentThresholdIndex,
+                thresholdId: currentThreshold._id,
+                collection: currentThreshold.collectionName,
+                field: currentThreshold.field,
+                thresholds: { green: currentThreshold.green, amber: currentThreshold.amber },
+                direction: currentThreshold.direction
+              });
+              
+              // Analyze data using the current threshold
+              const analysisRes = await analyzeKPIData({
+                collectionName: currentThreshold.collectionName,
+                field: currentThreshold.field,
+                greenThreshold: currentThreshold.green,
+                amberThreshold: currentThreshold.amber,
+                direction: currentThreshold.direction
+              });
+              
+              if (analysisRes.success) {
+                const contentData = {
+                  screen: screen,
+                  display: display,
+                  analysisData: analysisRes.data,
+                  currentThreshold: currentThreshold,
+                  currentThresholdIndex: currentThresholdIndex,
+                  lastUpdated: new Date().toISOString()
+                };
+                
+                setContent(contentData);
+                // Update ref for stable access in intervals
+                thresholdIdsRef.current = display?.thresholdIds;
+                localStorage.setItem(`screenContent_${screenName}`, JSON.stringify(contentData));
+              } else {
+                console.warn('Analysis failed for threshold:', currentThreshold, 'Error:', analysisRes.error);
+              }
+            } else {
+              // No thresholds configured for this display
+              const contentData = {
+                screen: screen,
+                display: display,
+                analysisData: null,
+                currentThreshold: null,
+                currentThresholdIndex: 0,
+                lastUpdated: new Date().toISOString(),
+                error: 'No thresholds configured for this display'
+              };
+              setContent(contentData);
+              localStorage.setItem(`screenContent_${screenName}`, JSON.stringify(contentData));
+            }
+          } else {
+            console.warn('Display fetch failed for displayName:', screen.displayName, 'Error:', displayRes.error);
+            setContent({
+              screen: screen,
+              display: null,
+              analysisData: null,
+              currentThreshold: null,
+              currentThresholdIndex: 0,
+              lastUpdated: new Date().toISOString(),
+              error: `Failed to fetch display configuration: ${displayRes.error}`
+            });
+          }
+        } else {
+          console.warn('Screen fetch failed for screenName:', screenName, 'Error:', screenRes.error);
+          setContent({
+            screen: null,
+            display: null,
+            analysisData: null,
+            currentThreshold: null,
+            currentThresholdIndex: 0,
+            lastUpdated: new Date().toISOString(),
+            error: `Screen not found: ${screenName}`
+          });
         }
       } catch (err) {
         console.error('Fetch exception (keeping last known data displayed):', err);
@@ -93,12 +154,12 @@ const KPIAnalysisPage = () => {
     // Initial fetch
     fetchContent();
     
-  }, [displayName, currentThresholdIndex]);
+  }, [screenName, currentThresholdIndex]);
 
   // CONSOLIDATED POLLING - Re-fetch data every X seconds using the CURRENT threshold
   useEffect(() => {
-    if (!content?.display?.time) {
-      return; // Wait until we have display config
+    if (!content?.display?.time || !content?.screen?.displayName) {
+      return; // Wait until we have both screen and display config
     }
 
     const pollingTime = content.display.time; // Use configured time
@@ -107,45 +168,50 @@ const KPIAnalysisPage = () => {
     // Polling function uses currentThresholdIndex from React state
     const refreshData = async () => {
       try {
-        // Always use currentThresholdIndex from state
-        const displayRes = await fetchDisplayConfig(displayName);
-        if (displayRes.success && displayRes.display) {
-          const display = displayRes.display;
-          const thresholdCount = display.thresholdIds?.length || 0;
+        // First fetch screen to get current displayName
+        const screenRes = await fetchScreenConfig(screenName);
+        if (screenRes.success && screenRes.screen && screenRes.screen.displayName) {
+          // Then fetch display config using displayName from screen
+          const displayRes = await fetchDisplayConfig(screenRes.screen.displayName);
+          if (displayRes.success && displayRes.display) {
+            const display = displayRes.display;
+            const thresholdCount = display.thresholdIds?.length || 0;
 
-          // Reset threshold index if out of bounds
-          if (currentThresholdIndex >= thresholdCount) {
-            console.log(`Polling: threshold index ${currentThresholdIndex} out of bounds, resetting to 0`);
-            setCurrentThresholdIndex(0);
-            return;
-          }
+            // Reset threshold index if out of bounds
+            if (currentThresholdIndex >= thresholdCount) {
+              console.log(`Polling: threshold index ${currentThresholdIndex} out of bounds, resetting to 0`);
+              setCurrentThresholdIndex(0);
+              return;
+            }
 
-          if (display.thresholdIds && thresholdCount > 0 && currentThresholdIndex < thresholdCount) {
-            const currentThreshold = display.thresholdIds[currentThresholdIndex];
+            if (display.thresholdIds && thresholdCount > 0 && currentThresholdIndex < thresholdCount) {
+              const currentThreshold = display.thresholdIds[currentThresholdIndex];
 
-            if (currentThreshold?.collectionName && currentThreshold?.field) {
-              const analysisRes = await analyzeKPIData({
-                collectionName: currentThreshold.collectionName,
-                field: currentThreshold.field,
-                greenThreshold: currentThreshold.green,
-                amberThreshold: currentThreshold.amber,
-                direction: currentThreshold.direction
-              });
+              if (currentThreshold?.collectionName && currentThreshold?.field) {
+                const analysisRes = await analyzeKPIData({
+                  collectionName: currentThreshold.collectionName,
+                  field: currentThreshold.field,
+                  greenThreshold: currentThreshold.green,
+                  amberThreshold: currentThreshold.amber,
+                  direction: currentThreshold.direction
+                });
 
-              if (analysisRes.success) {
-                // UPDATE BOTH DISPLAY CONFIG AND ANALYSIS DATA
-                const updatedContent = {
-                  display: display, // Update display config with latest thresholds
-                  analysisData: analysisRes.data,
-                  currentThreshold: currentThreshold,
-                  currentThresholdIndex: currentThresholdIndex, // Use React state
-                  lastUpdated: new Date().toISOString()
-                };
+                if (analysisRes.success) {
+                  // UPDATE BOTH SCREEN, DISPLAY CONFIG AND ANALYSIS DATA
+                  const updatedContent = {
+                    screen: screenRes.screen, // Update screen config
+                    display: display, // Update display config with latest thresholds
+                    analysisData: analysisRes.data,
+                    currentThreshold: currentThreshold,
+                    currentThresholdIndex: currentThresholdIndex, // Use React state
+                    lastUpdated: new Date().toISOString()
+                  };
 
-                setContent(updatedContent);
-                thresholdIdsRef.current = display?.thresholdIds;
-                localStorage.setItem(`displayContent_${displayName}`, JSON.stringify(updatedContent));
-                console.log(`POLLING: Updated config & data for ${currentThreshold.collectionName}.${currentThreshold.field}`);
+                  setContent(updatedContent);
+                  thresholdIdsRef.current = display?.thresholdIds;
+                  localStorage.setItem(`screenContent_${screenName}`, JSON.stringify(updatedContent));
+                  console.log(`POLLING: Updated config & data for ${currentThreshold.collectionName}.${currentThreshold.field}`);
+                }
               }
             }
           }
@@ -160,7 +226,7 @@ const KPIAnalysisPage = () => {
       console.log('🧹 Cleaning up polling interval');
       clearInterval(pollingInterval);
     };
-  }, [content?.display?.time, displayName, currentThresholdIndex]); // Add currentThresholdIndex dependency
+  }, [content?.display?.time, screenName, currentThresholdIndex]); // Update dependencies
 
     // THRESHOLD INDEX BOUNDS CHECK USEEFFECT
   useEffect(() => {
@@ -211,20 +277,37 @@ const KPIAnalysisPage = () => {
   if (!content) {
     return (
       <KPIAnalysisLayout
-        key={`loading-${displayName}`}
+        key={`loading-${screenName}`}
         title="Loading..."
-        subtitle={`Loading display: ${displayName || 'N/A'}`}
+        subtitle={`Loading screen: ${screenName || 'N/A'}`}
         analysisData={null}
         field=""
         collectionName=""
         actionButtons={null}
-        emptyStateTitle="Loading Display"
-        emptyStateMessage="Please wait while we fetch your display configuration..."
+        emptyStateTitle="Loading Screen"
+        emptyStateMessage="Please wait while we fetch your screen configuration..."
       />
     );
   }
 
-  const { display, analysisData, currentThreshold } = content;
+  // Handle error states
+  if (content.error) {
+    return (
+      <KPIAnalysisLayout
+        key={`error-${screenName}`}
+        title={`Screen: ${screenName}`}
+        subtitle={content.screen ? `Display: ${content.screen.displayName || 'Not configured'}` : 'Screen not found'}
+        analysisData={null}
+        field=""
+        collectionName=""
+        actionButtons={null}
+        emptyStateTitle="Configuration Error"
+        emptyStateMessage={content.error}
+      />
+    );
+  }
+
+  const { screen, display, analysisData, currentThreshold } = content;
 
   // Format the last updated time for display
   const formatLastUpdated = () => {
@@ -262,15 +345,15 @@ const KPIAnalysisPage = () => {
         <div className="date">{lastUpdatedDate}</div>
       </LastUpdatedTimestamp>
       <KPIAnalysisLayout
-        key={`${displayName}-${currentThresholdIndex}-${currentThreshold?._id}`}
-        title={`KPI Dashboard: ${displayName}`}
-        subtitle={`Collection: ${currentThreshold?.collectionName || 'N/A'} | Field: ${currentThreshold?.field || 'N/A'} | Polling: ${display?.time || 30}s | Threshold: ${(currentThresholdIndex || 0) + 1}/${display?.thresholdIds?.length || 1}`}
+        key={`${screenName}-${currentThresholdIndex}-${currentThreshold?._id}`}
+        title={`Screen: ${screen?.screenName || screenName}`}
+        subtitle={`Display: ${screen?.displayName || 'N/A'} | ${screen?.description || ''} | Collection: ${currentThreshold?.collectionName || 'N/A'} | Field: ${currentThreshold?.field || 'N/A'} | Polling: ${display?.time || 30}s | Threshold: ${(currentThresholdIndex || 0) + 1}/${display?.thresholdIds?.length || 1}`}
         analysisData={analysisData}
         field={currentThreshold?.field}
         collectionName={currentThreshold?.collectionName}
         actionButtons={null}
         emptyStateTitle="No Analysis Data Available"
-        emptyStateMessage="No data could be analyzed for this display configuration."
+        emptyStateMessage={analysisData ? "No data could be analyzed for this display configuration." : "Display configuration is loading or not available."}
       />
       
     </>

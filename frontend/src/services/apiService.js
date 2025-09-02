@@ -5,6 +5,30 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 /**
+ * Fetches screen configuration by screen name
+ * @param {string} screenName - Name of the screen
+ * @returns {Promise<object>} - API response with screen data
+ */
+export const fetchScreenConfig = async (screenName) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/screen-api/${screenName}`);
+    const data = await response.json();
+    return {
+      success: true,
+      screen: data,
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error fetching screen config:', error);
+    return {
+      success: false,
+      screen: null,
+      error: 'Error connecting to server',
+    };
+  }
+};
+
+/**
  * Fetches the list of all collections from the backend
  * @returns {Promise<object>} - API response with collections data
  */
