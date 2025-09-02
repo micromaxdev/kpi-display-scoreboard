@@ -63,7 +63,7 @@ const DeleteDisplayModal = ({
             {formatDisplayName ? formatDisplayName(displayName) : displayName}"?
           </p>
           <p><strong>This action cannot be undone.</strong></p>
-          <p>All configured thresholds and settings for this display will be permanently removed.</p>
+          <p>All configured settings for this playlist will be permanently removed.</p>
         </ConfirmationBody>
         
         <ConfirmationActions>

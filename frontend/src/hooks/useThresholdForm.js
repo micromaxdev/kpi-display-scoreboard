@@ -142,9 +142,10 @@ export const useCollectionSampleData = (selectedCollection) => {
 
 /**
  * Custom hook for managing threshold form state
+ * @param {string} selectedDisplayName - The display name selected from DisplaySelector
  * @returns {object} - Form state and handlers
  */
-export const useThresholdForm = () => {
+export const useThresholdForm = (selectedDisplayName = null) => {
   const navigate = useNavigate();
   
   // Function to get initial form state with localStorage persistence
@@ -302,12 +303,21 @@ export const useThresholdForm = () => {
         ///////////////////////////////////////////
         // Save Display as well with thresholdID //
         ///////////////////////////////////////////
-        const displayConfig = {
-          displayName: "dashboard",
-          thresholdId: saveResult.data._id // Assuming saveResult contains the saved threshold data
-        };
+        if (selectedDisplayName) {
+          const displayConfig = {
+            displayName: selectedDisplayName,
+            thresholdId: saveResult.data._id // Assuming saveResult contains the saved threshold data
+          };
 
-        const saveDisplay = await saveDisplayConfig(displayConfig);
+          const saveDisplay = await saveDisplayConfig(displayConfig);
+          
+          if (!saveDisplay.success) {
+            console.warn('Failed to save display config:', saveDisplay.message);
+            // Continue with the process even if display config save fails
+          }
+        } else {
+          console.warn('No display name provided, skipping display config save');
+        }
       }
 
       // Analyze KPI data
@@ -373,10 +383,11 @@ export const useThresholdForm = () => {
 
 /**
  * Custom hook for managing form state with collections and fields
+ * @param {string} selectedDisplayName - The display name selected from DisplaySelector
  * @returns {object} - Complete form state and handlers
  */
-export const useThresholdFormWithData = () => {
-  const formHook = useThresholdForm();
+export const useThresholdFormWithData = (selectedDisplayName = null) => {
+  const formHook = useThresholdForm(selectedDisplayName);
   const collectionsHook = useCollections();
   const fieldsHook = useCollectionFields(formHook.formData.selectedCollection);
   const sampleDataHook = useCollectionSampleData(formHook.formData.selectedCollection);

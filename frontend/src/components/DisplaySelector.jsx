@@ -13,7 +13,7 @@ import useConfirmationModal from '../hooks/useConfirmationModal';
 import useControlledDisplay from '../hooks/useControlledDisplay';
 import useDisplayManagement from '../hooks/useDisplayManagement';
 
-// Import new modular components
+// Import modular components
 import DisplayActions from './DisplayActions';
 import TimeSettings from './TimeSettings';
 import ThresholdsList from './ThresholdsList';

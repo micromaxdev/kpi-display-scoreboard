@@ -31,9 +31,29 @@ const CreateDisplayModal = ({
     onClose();
   };
 
+  const handleTimeChange = (e) => {
+    const value = e.target.value;
+    // Allow empty string for editing, or valid numbers
+    if (value === '' || value === '0') {
+      setDisplayTime('');
+    } else {
+      const numValue = parseInt(value);
+      if (!isNaN(numValue) && numValue >= 0) {
+        setDisplayTime(numValue);
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     if (!displayName.trim()) {
       setError('Display name is required');
+      return;
+    }
+
+    // Validate display time
+    const timeValue = typeof displayTime === 'string' ? parseInt(displayTime) : displayTime;
+    if (!timeValue || timeValue < 5 || timeValue > 3600) {
+      setError('Cycle time must be between 5 and 3600 seconds');
       return;
     }
 
@@ -47,7 +67,7 @@ const CreateDisplayModal = ({
     setError('');
 
     try {
-      const result = await createDisplay(displayName.trim(), displayTime);
+      const result = await createDisplay(displayName.trim(), timeValue);
       
       if (result.success) {
         handleClose();
@@ -116,7 +136,7 @@ const CreateDisplayModal = ({
               min="5"
               max="3600"
               value={displayTime}
-              onChange={(e) => setDisplayTime(parseInt(e.target.value) || 30)}
+              onChange={handleTimeChange}
               onKeyPress={handleKeyPress}
               placeholder="30"
               style={{ width: '100%' }}

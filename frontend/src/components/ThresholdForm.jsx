@@ -22,6 +22,18 @@ import FormActions from './FormActions';
 import DisplaySelector from './DisplaySelector';
 
 const ThresholdForm = () => {
+  // Display state for passing to hook
+  const [selectedDisplay, setSelectedDisplay] = useState('');
+  const [displayThresholds, setDisplayThresholds] = useState([]);
+  const [displayLoading, setDisplayLoading] = useState(false);
+  const [displayError, setDisplayError] = useState(null);
+
+  // Handle display change from DisplaySelector
+  const handleDisplayChange = (e) => {
+    const displayName = e.target ? e.target.value : e;
+    setSelectedDisplay(displayName);
+  };
+
   const {
     formData,
     message,
@@ -40,7 +52,7 @@ const ThresholdForm = () => {
     refetchCollections,
     fetchAndPopulateThreshold,
     autoPopulating // <-- new state from hook
-  } = useThresholdFormWithData();
+  } = useThresholdFormWithData(selectedDisplay); // Pass selectedDisplay to hook
 
   const {
     selectedCollection,
@@ -52,12 +64,6 @@ const ThresholdForm = () => {
 
   // File upload modal state
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-
-  // Display selection state
-  const [selectedDisplay, setSelectedDisplay] = useState('');
-  const [displayThresholds, setDisplayThresholds] = useState([]);
-  const [displayLoading, setDisplayLoading] = useState(false);
-  const [displayError, setDisplayError] = useState(null);
 
   // Get direction suggestion for the selected field
   const directionSuggestion = useMemo(() => {
@@ -209,7 +215,7 @@ const ThresholdForm = () => {
             displayThresholds={displayThresholds}
             loading={displayLoading}
             error={displayError}
-            onDisplayChange={setSelectedDisplay}
+            onDisplayChange={handleDisplayChange}
             onThresholdsUpdate={setDisplayThresholds}
             onLoadingChange={setDisplayLoading}
             onErrorChange={setDisplayError}
