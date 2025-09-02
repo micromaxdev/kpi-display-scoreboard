@@ -8,6 +8,7 @@ import kpiRouter from "./routes/kpiRoutes.js";
 import thresholdRouter from "./routes/thresholdRoutes.js";
 import displayRouter from "./routes/displayRoutes.js";
 import fileRouter from "./routes/fileUploadRoutes.js";
+import screenRouter from "./routes/screenRoutes.js";
 dotenv.config();
 
 const port = process.env.PORT || 5000;
@@ -36,6 +37,7 @@ app.use('/kpi-api', kpiRouter);
 app.use('/threshold-api', thresholdRouter);
 app.use('/display-api', displayRouter);
 app.use('/file-api', fileRouter);
+app.use('/screen-api', screenRouter);
 
 // Custom error handler middleware
 app.use(errorHandler);

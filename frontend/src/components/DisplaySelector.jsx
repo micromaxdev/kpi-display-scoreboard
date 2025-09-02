@@ -308,7 +308,7 @@ const DisplaySelector = ({
           fontSize: '14px',
           marginBottom: '16px'
         }}>
-          ⚠️ No playlist selected. Threshold saved globally and will affect all playlists using this collection and field.
+          ⚠️ No playlist selected. Threshold saved globally and will affect all playlists using this report.
         </div>
       )}
 
