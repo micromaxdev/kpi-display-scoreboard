@@ -2,9 +2,9 @@ import * as screenService from '../services/screenService.js';
 
 export const createScreen = async (req, res) => {
     try {
-        const { screenName, description, screenUrl } = req.body;
+        const { screenName, description, screenUrl, displayName } = req.body;
         const screenNameToLower = screenName.toLowerCase();
-        const screen = await screenService.createScreen({ screenName, description, screenUrl, screenNameToLower });
+        const screen = await screenService.createScreen({ screenName, description, screenUrl, displayName, screenNameToLower });
         res.status(201).json(screen);
     } catch (error) {
         res.status(500).json({ error: error.message });
