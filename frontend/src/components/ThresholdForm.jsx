@@ -13,7 +13,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useThresholdFormWithData } from '../hooks/useThresholdForm';
 import { getDirectionSuggestion } from '../utils/fieldUtils';
 import CollectionDataTable from './CollectionDataTable';
-import FileUploadModal from './FileUploadModal';
+import FileUploadModal from './modals/FileUploadModal';
 import CollectionSelector from './CollectionSelector';
 import FieldSelector from './FieldSelector';
 import ThresholdConfig from './ThresholdConfig';

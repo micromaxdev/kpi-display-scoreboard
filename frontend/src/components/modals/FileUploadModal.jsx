@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { uploadFileToCollection } from '../services/apiService';
+import { uploadFileToCollection } from '../../services/apiService';
 import {
   ModalOverlay,
   ModalContent,
@@ -23,7 +23,7 @@ import {
   LoadingSpinner,
   ProgressBar,
   ProgressFill
-} from '../styles/FileUploadModal.styled';
+} from '../../styles/FileUploadModal.styled';
 
 const FileUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
   const [collectionName, setCollectionName] = useState('');
