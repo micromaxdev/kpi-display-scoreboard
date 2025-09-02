@@ -1,6 +1,5 @@
 import {
   Page,
-  Header as PageHeader,
   Content,
   FormSection,
   DataSection,
@@ -147,11 +146,6 @@ const ThresholdForm = () => {
 
   return (
     <Page>
-      <PageHeader>
-        <h2>Set KPI Thresholds</h2>
-        {/* <p>Configure green and amber thresholds for your KPI metrics</p> */}
-      </PageHeader>
-
       {message.text && (
         <Message $type={message.type}>
           <span>{message.text}</span>

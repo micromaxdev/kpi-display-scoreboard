@@ -29,6 +29,139 @@ export const fetchScreenConfig = async (screenName) => {
 };
 
 /**
+ * Fetches all screens from the backend
+ * @returns {Promise<object>} - API response with screens array
+ */
+export const fetchAllScreens = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/screen-api`);
+    const data = await response.json();
+    return {
+      success: true,
+      screens: Array.isArray(data) ? data : [],
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error fetching all screens:', error);
+    return {
+      success: false,
+      screens: [],
+      error: 'Error connecting to server',
+    };
+  }
+};
+
+/**
+ * Creates a new screen
+ * @param {object} screenData - Screen data to create
+ * @returns {Promise<object>} - API response with created screen
+ */
+export const createScreen = async (screenData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/screen-api`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(screenData),
+    });
+    const data = await response.json();
+    return {
+      success: response.ok,
+      screen: data,
+      error: response.ok ? null : data.error || 'Failed to create screen',
+    };
+  } catch (error) {
+    console.error('Error creating screen:', error);
+    return {
+      success: false,
+      screen: null,
+      error: 'Error connecting to server',
+    };
+  }
+};
+
+/**
+ * Updates a screen by name
+ * @param {string} screenName - Name of the screen to update
+ * @param {object} screenData - Updated screen data
+ * @returns {Promise<object>} - API response with updated screen
+ */
+export const updateScreen = async (screenName, screenData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/screen-api/${screenName}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(screenData),
+    });
+    const data = await response.json();
+    return {
+      success: response.ok,
+      screen: data,
+      error: response.ok ? null : data.error || 'Failed to update screen',
+    };
+  } catch (error) {
+    console.error('Error updating screen:', error);
+    return {
+      success: false,
+      screen: null,
+      error: 'Error connecting to server',
+    };
+  }
+};
+
+/**
+ * Deletes a screen by name
+ * @param {string} screenName - Name of the screen to delete
+ * @returns {Promise<object>} - API response
+ */
+export const deleteScreen = async (screenName) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/screen-api/${screenName}`, {
+      method: 'DELETE',
+    });
+    const data = await response.json();
+    return {
+      success: response.ok,
+      message: data.message || 'Screen deleted successfully',
+      error: response.ok ? null : data.error || 'Failed to delete screen',
+    };
+  } catch (error) {
+    console.error('Error deleting screen:', error);
+    return {
+      success: false,
+      message: null,
+      error: 'Error connecting to server',
+    };
+  }
+};
+
+/**
+ * Fetches all displays from the backend
+ * @returns {Promise<object>} - API response with displays array
+ */
+export const fetchAllDisplays = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/display-api`);
+    const data = await response.json();
+    return {
+      success: data.success !== false,
+      displays: data.displays || [],
+      error: data.error || null,
+    };
+  } catch (error) {
+    console.error('Error fetching all displays:', error);
+    return {
+      success: false,
+      displays: [],
+      error: 'Error connecting to server',
+    };
+  }
+};
+
+/**
  * Fetches the list of all collections from the backend
  * @returns {Promise<object>} - API response with collections data
  */

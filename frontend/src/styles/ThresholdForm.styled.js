@@ -13,30 +13,12 @@ export const Page = styled.div`
   overflow-y: auto;
 `;
 
-export const Header = styled.div`
-  text-align: center;
-  margin-bottom: 1rem;
-  color: white;
-
-  h2 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-    font-weight: 300;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  p {
-    font-size: 1rem;
-    opacity: 0.9;
-    margin: 0;
-  }
-`;
-
 export const Content = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   align-items: start;
+  margin-top: 1rem;
   min-height: calc(100vh - 120px);
 
   @media (max-width: 1200px) {
