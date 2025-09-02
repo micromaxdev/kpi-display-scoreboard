@@ -298,6 +298,20 @@ const DisplaySelector = ({
         </HeaderActionsContainer>
       </SectionHeader>
 
+      {!currentSelectedDisplay && (
+        <div style={{
+          padding: '12px 16px',
+          backgroundColor: '#fff3cd',
+          border: '1px solid #ffeaa7',
+          borderRadius: '6px',
+          color: '#856404',
+          fontSize: '14px',
+          marginBottom: '16px'
+        }}>
+          ⚠️ No playlist selected. Threshold saved globally and will affect all playlists using this collection and field.
+        </div>
+      )}
+
       {currentError && (
         <ErrorMessage>
           <span>⚠️ {currentError}</span>
