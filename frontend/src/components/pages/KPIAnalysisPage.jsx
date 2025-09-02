@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import {LastUpdatedTimestamp} from '../styles/KpiLayout.styled.js';
-import KPIAnalysisLayout from './KPIAnalysisLayout';
-import { fetchDisplayConfig, analyzeKPIData, fetchScreenConfig } from '../services/apiService';
+import {LastUpdatedTimestamp} from '../../styles/KpiLayout.styled.js';
+import KPIAnalysisLayout from '../layout/KPIAnalysisLayout';
+import { fetchDisplayConfig, analyzeKPIData, fetchScreenConfig } from '../../services/apiService';
 
 
 const KPIAnalysisPage = () => {

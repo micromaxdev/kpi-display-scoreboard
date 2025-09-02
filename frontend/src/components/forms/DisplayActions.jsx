@@ -1,7 +1,7 @@
 import {
   DisplayDropdown,
   TimeButton
-} from '../styles/DisplaySelector.styled';
+} from '../../styles/DisplaySelector.styled';
 
 const DisplayActions = ({
   selectedDisplay,

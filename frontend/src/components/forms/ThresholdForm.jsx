@@ -7,18 +7,18 @@ import {
   ConfigSection,
   Message,
   CloseBtn
-} from '../styles/ThresholdForm.styled';
+} from '../../styles/ThresholdForm.styled';
 import { useMemo, useState, useEffect } from 'react';
-import { useThresholdFormWithData } from '../hooks/useThresholdForm';
-import { getDirectionSuggestion } from '../utils/fieldUtils';
-import CollectionDataTable from './CollectionDataTable';
-import FileUploadModal from './modals/FileUploadModal';
-import CollectionSelector from './CollectionSelector';
-import FieldSelector from './FieldSelector';
-import ThresholdConfig from './ThresholdConfig';
-import ThresholdInfoPanel from './ThresholdInfoPanel';
+import { useThresholdFormWithData } from '../../hooks/useThresholdForm';
+import { getDirectionSuggestion } from '../../utils/fieldUtils';
+import CollectionDataTable from '../data/CollectionDataTable';
+import FileUploadModal from '../modals/FileUploadModal';
+import CollectionSelector from '../selectors/CollectionSelector';
+import FieldSelector from '../selectors/FieldSelector';
+import ThresholdConfig from '../config/ThresholdConfig';
+import ThresholdInfoPanel from '../data/ThresholdInfoPanel';
 import FormActions from './FormActions';
-import DisplaySelector from './DisplaySelector';
+import DisplaySelector from '../selectors/DisplaySelector';
 
 const ThresholdForm = () => {
   // Display state for passing to hook

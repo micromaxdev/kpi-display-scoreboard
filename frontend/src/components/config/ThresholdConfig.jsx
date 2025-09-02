@@ -9,7 +9,7 @@ import {
   Tooltip,
   ThresholdError,
   ErrorIcon
-} from '../styles/ThresholdForm.styled';
+} from '../../styles/ThresholdForm.styled';
 
 const ThresholdConfig = ({
   greenThreshold,

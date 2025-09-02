@@ -14,7 +14,7 @@ import {
   Spinner,
   MeasurableIcon,
   ErrorText,
-} from '../styles/CollectionDataTable.styled';
+} from '../../styles/CollectionDataTable.styled';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CollectionDataTable = ({ 

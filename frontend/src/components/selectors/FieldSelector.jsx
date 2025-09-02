@@ -13,8 +13,8 @@ import {
   ConfidenceBadge,
   SuggestionExplanation,
   ApplySuggestionButton
-} from '../styles/ThresholdForm.styled';
-import { getPlaceholderText, formatFieldDisplayName } from '../utils/formUtils';
+} from '../../styles/ThresholdForm.styled';
+import { getPlaceholderText, formatFieldDisplayName } from '../../utils/formUtils';
 
 const FieldSelector = ({
   selectedCollection,

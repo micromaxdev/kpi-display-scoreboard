@@ -1,8 +1,8 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import KPIAnalysisLayout from './KPIAnalysisLayout';
-import { ActionButtons, BackButton, DownloadButton } from '../styles/KpiLayout.styled';
-import { downloadExcel } from '../services/apiService';
+import KPIAnalysisLayout from '../layout/KPIAnalysisLayout';
+import { ActionButtons, BackButton, DownloadButton } from '../../styles/KpiLayout.styled';
+import { downloadExcel } from '../../services/apiService';
 
 const KPIPreviewPage = () => {
   const location = useLocation();

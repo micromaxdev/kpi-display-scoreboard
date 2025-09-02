@@ -10,7 +10,7 @@ import {
   FieldName,
   RemoveButton,
   EmptyState
-} from '../styles/DisplaySelector.styled';
+} from '../../styles/DisplaySelector.styled';
 
 const ThresholdsList = ({
   displayName,

@@ -2,7 +2,7 @@ import {
   Actions,
   SubmitBtn,
   ResetBtn
-} from '../styles/ThresholdForm.styled';
+} from '../../styles/ThresholdForm.styled';
 
 const FormActions = ({
   loading,

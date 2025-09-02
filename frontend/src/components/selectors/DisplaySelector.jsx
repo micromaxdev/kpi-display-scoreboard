@@ -5,21 +5,21 @@ import {
   LoadingSpinner,
   HeaderActionsContainer,
   ErrorCloseButton
-} from '../styles/DisplaySelector.styled';
-import useDisplaySelector from '../hooks/useDisplaySelector';
-import useDisplayTime from '../hooks/useDisplayTime';
-import useDisplayOptions from '../hooks/useDisplayOptions';
-import useConfirmationModal from '../hooks/useConfirmationModal';
-import useControlledDisplay from '../hooks/useControlledDisplay';
-import useDisplayManagement from '../hooks/useDisplayManagement';
+} from '../../styles/DisplaySelector.styled';
+import useDisplaySelector from '../../hooks/useDisplaySelector';
+import useDisplayTime from '../../hooks/useDisplayTime';
+import useDisplayOptions from '../../hooks/useDisplayOptions';
+import useConfirmationModal from '../../hooks/useConfirmationModal';
+import useControlledDisplay from '../../hooks/useControlledDisplay';
+import useDisplayManagement from '../../hooks/useDisplayManagement';
 
 // Import modular components
-import DisplayActions from './DisplayActions';
-import TimeSettings from './TimeSettings';
-import ThresholdsList from './ThresholdsList';
-import CreateDisplayModal from './modals/CreateDisplayModal';
-import DeleteDisplayModal from './modals/DeleteDisplayModal';
-import DeleteThresholdModal from './modals/DeleteThresholdModal';
+import DisplayActions from '../forms/DisplayActions';
+import TimeSettings from '../config/TimeSettings';
+import ThresholdsList from '../data/ThresholdsList';
+import CreateDisplayModal from '../modals/CreateDisplayModal';
+import DeleteDisplayModal from '../modals/DeleteDisplayModal';
+import DeleteThresholdModal from '../modals/DeleteThresholdModal';
 
 
 const DisplaySelector = ({ 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { fetchAllScreens, fetchAllDisplays, updateScreen } from '../services/apiService';
-import DeleteScreenModal from './modals/DeleteScreenModal';
-import CreateScreenModal from './modals/CreateScreenModal';
+import { fetchAllScreens, fetchAllDisplays, updateScreen } from '../../services/apiService';
+import DeleteScreenModal from '../modals/DeleteScreenModal';
+import CreateScreenModal from '../modals/CreateScreenModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Page,
@@ -30,7 +30,7 @@ import {
   containerVariants,
   cardVariants,
   buttonHoverVariants
-} from '../styles/ScreenConfig.styled';
+} from '../../styles/ScreenConfig.styled';
 
 const ScreenConfigPage = () => {
   const [screens, setScreens] = useState([]);

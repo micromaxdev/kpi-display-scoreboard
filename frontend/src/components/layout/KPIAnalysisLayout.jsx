@@ -9,7 +9,7 @@ import {
   TableRow,
   TableCell,
   EmptyState
-} from '../styles/KpiLayout.styled';
+} from '../../styles/KpiLayout.styled';
 
 const KPIAnalysisLayout = ({ 
   title, 

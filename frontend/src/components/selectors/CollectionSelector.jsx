@@ -4,8 +4,8 @@ import {
   LabelRow,
   UploadButton,
   SelectedInfo
-} from '../styles/ThresholdForm.styled';
-import { getPlaceholderText } from '../utils/formUtils';
+} from '../../styles/ThresholdForm.styled';
+import { getPlaceholderText } from '../../utils/formUtils';
 
 const CollectionSelector = ({
   selectedCollection,

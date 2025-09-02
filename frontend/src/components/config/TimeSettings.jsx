@@ -5,7 +5,7 @@ import {
   TimeUnit,
   TimeButton,
   FormattedTimeDisplay
-} from '../styles/DisplaySelector.styled';
+} from '../../styles/DisplaySelector.styled';
 
 const TimeSettings = ({
   displayName,

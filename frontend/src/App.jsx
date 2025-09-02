@@ -1,8 +1,8 @@
-import ThresholdForm from './components/ThresholdForm'
-import AnalyzePage from './components/KPIAnalysisPage'
-import PreviewPage from './components/PreviewPage'
-import ScreenConfigPage from './components/ScreenConfigPage'
-import Navigation from './components/Navigation'
+import ThresholdForm from './components/forms/ThresholdForm'
+import AnalyzePage from './components/pages/KPIAnalysisPage'
+import PreviewPage from './components/pages/PreviewPage'
+import ScreenConfigPage from './components/pages/ScreenConfigPage'
+import Navigation from './components/layout/Navigation'
 import './App.css'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 

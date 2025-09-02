@@ -4,7 +4,7 @@ import {
   InfoGrid,
   InfoItem,
   ColorIndicator
-} from '../styles/ThresholdForm.styled';
+} from '../../styles/ThresholdForm.styled';
 
 const ThresholdInfoPanel = ({ getThresholdDescription }) => {
   // Animation variants for the container only
