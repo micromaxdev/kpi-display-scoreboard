@@ -17,7 +17,7 @@ function AppContent() {
         <Route path="/" element={<ThresholdForm />} />
         <Route path="/preview" element={<PreviewPage />} />
         <Route path="/screens" element={<ScreenConfigPage />} />
-        <Route path="/:displayName" element={<AnalyzePage />} />
+        <Route path="/shows/:displayName" element={<AnalyzePage />} />
       </Routes>
     </>
   );
