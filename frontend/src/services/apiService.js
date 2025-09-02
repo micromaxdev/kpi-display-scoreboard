@@ -514,3 +514,67 @@ export const fetchSingleThreshold = async (collectionName, field) => {
     return { success: false, threshold: null, error: error.message };
   }
 };
+
+/**
+ * Creates a new display/playlist
+ * @param {string} displayName - Name of the new display
+ * @param {number} time - Cycle time for the display in seconds
+ * @returns {Promise<object>} - API response
+ */
+export const createDisplay = async (displayName, time = 30) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/display-api/save`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        displayName,
+        time
+      }),
+    });
+    const data = await response.json();
+    
+    return {
+      success: data.success,
+      message: data.message || (data.success ? 'Display created successfully!' : 'Failed to create display'),
+      data: data.display || null,
+      error: data.error || null
+    };
+  } catch (error) {
+    console.error('Error creating display:', error);
+    return {
+      success: false,
+      message: 'Error connecting to server',
+      data: null,
+      error: error.message
+    };
+  }
+};
+
+/**
+ * Deletes a display/playlist
+ * @param {string} displayName - Name of the display to delete
+ * @returns {Promise<object>} - API response
+ */
+export const deleteDisplay = async (displayName) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/display-api/${encodeURIComponent(displayName)}`, {
+      method: 'DELETE',
+    });
+    const data = await response.json();
+    
+    return {
+      success: data.success,
+      message: data.message || (data.success ? 'Display deleted successfully!' : 'Failed to delete display'),
+      error: data.error || null
+    };
+  } catch (error) {
+    console.error('Error deleting display:', error);
+    return {
+      success: false,
+      message: 'Error connecting to server',
+      error: error.message
+    };
+  }
+};

@@ -1,41 +1,25 @@
 import {
   DisplaySection,
   SectionHeader,
-  DisplayDropdown,
-  TimeSettingContainer,
-  TimeLabel,
-  TimeUnit,
-  TimeButton,
-  ThresholdsContainer,
-  ThresholdsGrid,
-  DragHandle,
-  OrderNumber,
-  ThresholdInfo,
-  CollectionName,
-  FieldName,
-  RemoveButton,
-  ThresholdsHeader,
-  EmptyState,
   ErrorMessage,
   LoadingSpinner,
-  ConfirmationModal,
-  ConfirmationDialog,
-  ConfirmationHeader,
-  ConfirmationBody,
-  ConfirmationActions,
-  CancelButton,
-  DeleteButton,
   HeaderActionsContainer,
-  CycleTimeInput,
-  FormattedTimeDisplay,
-  ErrorCloseButton,
-  DynamicThresholdTab
+  ErrorCloseButton
 } from '../styles/DisplaySelector.styled';
 import useDisplaySelector from '../hooks/useDisplaySelector';
 import useDisplayTime from '../hooks/useDisplayTime';
 import useDisplayOptions from '../hooks/useDisplayOptions';
 import useConfirmationModal from '../hooks/useConfirmationModal';
 import useControlledDisplay from '../hooks/useControlledDisplay';
+import useDisplayManagement from '../hooks/useDisplayManagement';
+
+// Import new modular components
+import DisplayActions from './DisplayActions';
+import TimeSettings from './TimeSettings';
+import ThresholdsList from './ThresholdsList';
+import CreateDisplayModal from './modals/CreateDisplayModal';
+import DeleteDisplayModal from './modals/DeleteDisplayModal';
+import DeleteThresholdModal from './modals/DeleteThresholdModal';
 
 
 const DisplaySelector = ({ 
@@ -76,6 +60,19 @@ const DisplaySelector = ({
 
   // Custom hooks for specific functionality
   const { getFilteredOptions, formatDisplayName } = useDisplayOptions();
+  
+  // Display management hook
+  const {
+    showCreateModal,
+    openCreateModal,
+    closeCreateModal,
+    showDeleteConfirmation,
+    displayToDelete,
+    openDeleteConfirmation,
+    closeDeleteConfirmation,
+    isDeleting,
+    setDeletingState
+  } = useDisplayManagement();
   
   const { 
     displayTime, 
@@ -234,6 +231,34 @@ const DisplaySelector = ({
   const currentDragOverIndex = onThresholdsUpdate ? localDragOverIndex : hookDragOverIndex;
   const currentReorderLoading = onThresholdsUpdate ? localReorderLoading : hookReorderLoading;
 
+  // Display management handlers
+  const handleCreateDisplay = () => {
+    openCreateModal();
+  };
+
+  const handleCreateSuccess = () => {
+    // Refresh display options by triggering a re-fetch
+    window.location.reload(); // Simple refresh for now
+  };
+
+  const handleDeleteDisplay = () => {
+    if (!currentSelectedDisplay) return;
+    openDeleteConfirmation(currentSelectedDisplay);
+  };
+
+  const handleDeleteSuccess = (deletedDisplayName) => {
+    // Clear current selection if it was the deleted display
+    if (currentSelectedDisplay === deletedDisplayName) {
+      if (onDisplayChange) {
+        onDisplayChange({ target: { value: '' } });
+      } else {
+        hookHandleDisplayChange('');
+      }
+    }
+    // Refresh display options
+    window.location.reload(); // Simple refresh for now
+  };
+
   return (
     <DisplaySection
       initial={{ opacity: 0, y: 8 }}
@@ -248,44 +273,26 @@ const DisplaySelector = ({
           </div>
         </div>
         <HeaderActionsContainer>
-          <DisplayDropdown
-            value={currentSelectedDisplay}
-            onChange={handleDisplayChangeWrapper}
-            disabled={currentLoading}
-          >
-            <option value="">Select a playlist...</option>
-            {getFilteredOptions().map(option => (
-              <option key={option.displayName} value={option.displayName}>
-                {formatDisplayName(option.displayName)}
-              </option>
-            ))}
-          </DisplayDropdown>
+          <DisplayActions
+            selectedDisplay={currentSelectedDisplay}
+            displayOptions={getFilteredOptions()}
+            loading={currentLoading}
+            onDisplayChange={handleDisplayChangeWrapper}
+            onCreateDisplay={handleCreateDisplay}
+            onDeleteDisplay={handleDeleteDisplay}
+            formatDisplayName={formatDisplayName}
+            isDeleting={isDeleting}
+          />
           
-          {currentSelectedDisplay && (
-            <TimeSettingContainer>
-              <TimeLabel>Cycle Time:</TimeLabel>
-              <CycleTimeInput
-                type="number"
-                min="5"
-                max="3600"
-                value={displayTime}
-                onChange={(e) => handleTimeChange(e.target.value)}
-                onBlur={(e) => handleTimeBlur(e.target.value)}
-                disabled={isTimeUpdating}
-                placeholder="seconds"
-              />
-              <TimeUnit>sec</TimeUnit>
-              <TimeButton
-                onClick={handleTimeUpdateWrapper}
-                disabled={isTimeUpdating || !currentSelectedDisplay}
-              >
-                {isTimeUpdating ? 'Saving...' : 'Save'}
-              </TimeButton>
-              <FormattedTimeDisplay>
-                {getFormattedTime()}
-              </FormattedTimeDisplay>
-            </TimeSettingContainer>
-          )}
+          <TimeSettings
+            displayName={currentSelectedDisplay}
+            displayTime={displayTime}
+            isTimeUpdating={isTimeUpdating}
+            onTimeChange={handleTimeChange}
+            onTimeBlur={handleTimeBlur}
+            onTimeUpdate={handleTimeUpdateWrapper}
+            getFormattedTime={getFormattedTime}
+          />
           
           {currentLoading && <LoadingSpinner />}
         </HeaderActionsContainer>
@@ -300,88 +307,47 @@ const DisplaySelector = ({
         </ErrorMessage>
       )}
 
-      {currentSelectedDisplay && currentDisplayThresholds.length > 0 && (
-        <ThresholdsContainer>
-          <ThresholdsHeader>
-            <h4>Configured Thresholds {currentReorderLoading && '(Saving order...)'}</h4>
-            <span className="count">
-              {currentDisplayThresholds.length} threshold{currentDisplayThresholds.length !== 1 ? 's' : ''}
-              {currentDisplayThresholds.length > 1 && ' • Drag to reorder'}
-            </span>
-          </ThresholdsHeader>
-          
-          <ThresholdsGrid>
-            {currentDisplayThresholds.map((threshold, index) => (
-              <DynamicThresholdTab 
-                key={threshold._id || index}
-                draggable={!currentReorderLoading}
-                $isDragging={currentDraggedItem === index}
-                $dragOverIndex={currentDragOverIndex}
-                $index={index}
-                onDragStart={(e) => handleDragStartWrapper(e, index)}
-                onDragOver={(e) => handleDragOverWrapper(e, index)}
-                onDragLeave={handleDragLeaveWrapper}
-                onDrop={(e) => handleDropWrapper(e, index)}
-                onDragEnd={handleDragEndWrapper}
-              >
-                <OrderNumber>{index + 1}</OrderNumber>
-                <DragHandle title="Drag to reorder">⋮⋮</DragHandle>
-                <ThresholdInfo>
-                  <CollectionName>{threshold.collectionName}</CollectionName>
-                  <FieldName>{threshold.field}</FieldName>
-                </ThresholdInfo>
-                <RemoveButton
-                  onClick={() => handleThresholdRemove(threshold._id)}
-                  disabled={removingThreshold === threshold._id || currentReorderLoading}
-                  title="Remove threshold"
-                >
-                  {removingThreshold === threshold._id ? '...' : '×'}
-                </RemoveButton>
-              </DynamicThresholdTab>
-            ))}
-          </ThresholdsGrid>
-        </ThresholdsContainer>
-      )}
+      <ThresholdsList
+        displayName={currentSelectedDisplay}
+        thresholds={currentDisplayThresholds}
+        loading={currentLoading}
+        error={currentError}
+        reorderLoading={currentReorderLoading}
+        removingThreshold={removingThreshold}
+        draggedItem={currentDraggedItem}
+        dragOverIndex={currentDragOverIndex}
+        onThresholdRemove={handleThresholdRemove}
+        onDragStart={handleDragStartWrapper}
+        onDragOver={handleDragOverWrapper}
+        onDragLeave={handleDragLeaveWrapper}
+        onDrop={handleDropWrapper}
+        onDragEnd={handleDragEndWrapper}
+      />
 
-      {currentSelectedDisplay && currentDisplayThresholds.length === 0 && !currentLoading && !currentError && (
-        <EmptyState>
-          No thresholds configured for this display
-        </EmptyState>
-      )}
+      {/* Modals */}
+      <DeleteThresholdModal
+        isOpen={showConfirmation}
+        threshold={thresholdToDelete}
+        displayName={currentSelectedDisplay}
+        onClose={closeConfirmation}
+        onConfirm={confirmDeleteThreshold}
+        isDeleting={removingThreshold === thresholdToDelete?._id}
+      />
 
-      {/* Confirmation Modal */}
-      {showConfirmation && thresholdToDelete && (
-        <ConfirmationModal>
-          <ConfirmationDialog>
-            <ConfirmationHeader>
-              <h3>Delete Threshold</h3>
-            </ConfirmationHeader>
-            
-            <ConfirmationBody>
-              <p>Are you sure you want to delete this threshold? This action cannot be undone.</p>
-              
-              <div className="threshold-info">
-                <div className="collection">{thresholdToDelete?.collectionName}</div>
-                <div className="field">{thresholdToDelete?.field}</div>
-              </div>
-              
-              <p>This will remove the threshold from the "{currentSelectedDisplay}" display configuration.</p>
-            </ConfirmationBody>
-            
-            <ConfirmationActions>
-              <CancelButton onClick={closeConfirmation}>
-                Cancel
-              </CancelButton>
-              <DeleteButton 
-                onClick={confirmDeleteThreshold}
-                disabled={removingThreshold === thresholdToDelete?._id}
-              >
-                {removingThreshold === thresholdToDelete?._id ? 'Deleting...' : 'Delete Threshold'}
-              </DeleteButton>
-            </ConfirmationActions>
-          </ConfirmationDialog>
-        </ConfirmationModal>
-      )}
+      <CreateDisplayModal
+        isOpen={showCreateModal}
+        onClose={closeCreateModal}
+        onSuccess={handleCreateSuccess}
+        existingDisplays={getFilteredOptions()}
+      />
+
+      <DeleteDisplayModal
+        isOpen={showDeleteConfirmation}
+        displayName={displayToDelete}
+        onClose={closeDeleteConfirmation}
+        onSuccess={handleDeleteSuccess}
+        formatDisplayName={formatDisplayName}
+      />
     </DisplaySection>
   );
 };
