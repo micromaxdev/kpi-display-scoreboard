@@ -1,23 +1,27 @@
 import { getTopNCategory, processData } from "../services/kpiService.js";
-import { createColorCodedExcel } from "../utils/kpiUtils.js";
+import { createColorCodedExcel, filterExcludedFields } from "../utils/kpiUtils.js";
 
 export const analyzeKPIData = async (req, res) => {
     try {
-        const {collectionName, field, greenThreshold, amberThreshold, direction} = req.body;
+        const {collectionName, field, greenThreshold, amberThreshold, direction, excludedFields = []} = req.body;
         
         //categorize items based on the field and thresholds
         const categorizedItems = await processData(collectionName, field, greenThreshold, amberThreshold, direction);
+        
+        // Filter out excluded fields from the response data
+        const filteredItems = filterExcludedFields(categorizedItems, excludedFields);
+        
         //count items in each RAG category
         const countsByCategory = {
-            green: categorizedItems.filter(item => item.ragCategory === 'green').length,
-            amber: categorizedItems.filter(item => item.ragCategory === 'amber').length,
-            red: categorizedItems.filter(item => item.ragCategory === 'red').length,
-            total: categorizedItems.length
+            green: filteredItems.filter(item => item.ragCategory === 'green').length,
+            amber: filteredItems.filter(item => item.ragCategory === 'amber').length,
+            red: filteredItems.filter(item => item.ragCategory === 'red').length,
+            total: filteredItems.length
         }
 
         // Get top N items in each category
         const topN = 10;
-        const topItems = getTopNCategory(categorizedItems, topN, direction, field);
+        const topItems = getTopNCategory(filteredItems, topN, direction, field);
 
         const response = {
             success: true,
@@ -28,7 +32,8 @@ export const analyzeKPIData = async (req, res) => {
                 direction: direction
             },
             countsByCategory,
-            topItems
+            topItems,
+            excludedFields: excludedFields
         };
         return res.json(response);
     } catch (error) {

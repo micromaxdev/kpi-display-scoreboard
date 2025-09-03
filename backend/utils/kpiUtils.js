@@ -130,6 +130,28 @@ function organizeRagGroups(categorizedItems, direction, analysisField) {
     };
 }
 
+/**
+ * Filters out excluded fields from data objects
+ * @param {Array} items - Array of data objects
+ * @param {Array} excludedFields - Array of field names to exclude
+ * @returns {Array} - Filtered data objects
+ */
+export function filterExcludedFields(items, excludedFields = []) {
+    if (!Array.isArray(excludedFields) || excludedFields.length === 0) {
+        return items;
+    }
+    
+    return items.map(item => {
+        const filteredItem = {};
+        Object.keys(item).forEach(key => {
+            if (!excludedFields.includes(key)) {
+                filteredItem[key] = item[key];
+            }
+        });
+        return filteredItem;
+    });
+}
+
 // Main function - refactored and modularized
 export async function createColorCodedExcel(categorizedItems, analysisField, collectionName, thresholds, direction) {
     const workbook = new ExcelJS.Workbook();

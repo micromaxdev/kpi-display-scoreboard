@@ -46,3 +46,116 @@ export async function getThresholdById(req, res) {
     }
     res.json({ success: true, threshold });
 }
+
+// Update threshold excluded fields
+export async function updateThresholdExcludedFields(req, res) {
+    try {
+        const { thresholdId } = req.params;
+        const { excludedFields } = req.body;
+
+        if (!thresholdId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Threshold ID is required'
+            });
+        }
+
+        const result = await thresholdService.updateThresholdExcludedFields(
+            thresholdId, 
+            excludedFields
+        );
+
+        if (!result.success) {
+            return res.status(result.status || 500).json({
+                success: false,
+                message: result.message
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Excluded fields updated successfully',
+            data: result.data
+        });
+
+    } catch (error) {
+        console.error('Error updating threshold excluded fields:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating excluded fields',
+            error: error.message
+        });
+    }
+}
+
+// Get threshold excluded fields
+export async function getThresholdExcludedFields(req, res) {
+    try {
+        const { thresholdId } = req.params;
+
+        if (!thresholdId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Threshold ID is required'
+            });
+        }
+
+        const result = await thresholdService.getThresholdExcludedFields(thresholdId);
+
+        if (!result.success) {
+            return res.status(result.status || 500).json({
+                success: false,
+                message: result.message
+            });
+        }
+
+        res.json({
+            success: true,
+            data: result.data
+        });
+
+    } catch (error) {
+        console.error('Error fetching threshold excluded fields:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching excluded fields',
+            error: error.message
+        });
+    }
+}
+
+// Get available fields for a collection (helper endpoint)
+export async function getCollectionFields(req, res) {
+    try {
+        const { collectionName } = req.query;
+        
+        if (!collectionName) {
+            return res.status(400).json({
+                success: false,
+                message: 'Collection name is required'
+            });
+        }
+
+        const result = await thresholdService.getCollectionFields(collectionName);
+
+        if (!result.success) {
+            return res.status(result.status || 500).json({
+                success: false,
+                message: result.message
+            });
+        }
+
+        res.json({
+            success: true,
+            data: result.data
+        });
+
+    } catch (error) {
+        console.error('Error fetching collection fields:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching collection fields',
+            error: error.message
+        });
+    }
+}
