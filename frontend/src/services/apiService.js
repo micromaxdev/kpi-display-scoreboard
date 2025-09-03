@@ -391,7 +391,7 @@ export const fetchThresholdsByCollection = async (collectionName) => {
  * @param {{collectionName: string, field: string, greenThreshold: string|number, amberThreshold: string|number, direction: 'higher'|'lower'}} payload
  * @returns {Promise<object>} - API response from analyze
  */
-export const analyzeKPIData = async ({ collectionName, field, greenThreshold, amberThreshold, direction }) => {
+export const analyzeKPIData = async ({ collectionName, field, greenThreshold, amberThreshold, direction, excludedFields}) => {
   try {
     const response = await fetch(`${API_BASE_URL}/kpi-api/analyze`, {
       method: 'POST',
@@ -402,6 +402,7 @@ export const analyzeKPIData = async ({ collectionName, field, greenThreshold, am
         greenThreshold,
         amberThreshold,
         direction,
+        excludedFields
       }),
     });
     const data = await response.json();

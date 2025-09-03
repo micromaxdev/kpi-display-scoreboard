@@ -13,7 +13,26 @@ const KPIAnalysisPage = () => {
     const saved = localStorage.getItem(`screenContent_${screenName}`);
     return saved ? JSON.parse(saved) : null;
   });
+  // Helper function to analyze KPI data with excluded fields
+    const analyzeKPIDataWithExcludedFields = async (threshold) => {
+      if (!threshold?.collectionName || !threshold?.field) {
+        return { success: false, error: 'Invalid threshold data' };
+      }
 
+      // Get excluded fields from threshold (or default to empty array)
+      const excludedFields = threshold.excludedFields || [];
+      
+      console.log(`Analyzing KPI data with excluded fields:`, excludedFields);
+      
+      return await analyzeKPIData({
+        collectionName: threshold.collectionName,
+        field: threshold.field,
+        greenThreshold: threshold.green,
+        amberThreshold: threshold.amber,
+        direction: threshold.direction,
+        excludedFields: excludedFields
+      });
+    };
   // THRESHOLD CYCLING STATE
   const [currentThresholdIndex, setCurrentThresholdIndex] = useState(0);
   const [cycleInterval, setCycleInterval] = useState(null);
@@ -83,14 +102,8 @@ const KPIAnalysisPage = () => {
               });
               
               // Analyze data using the current threshold
-              const analysisRes = await analyzeKPIData({
-                collectionName: currentThreshold.collectionName,
-                field: currentThreshold.field,
-                greenThreshold: currentThreshold.green,
-                amberThreshold: currentThreshold.amber,
-                direction: currentThreshold.direction
-              });
-              
+              const analysisRes = await analyzeKPIDataWithExcludedFields(currentThreshold);
+
               if (analysisRes.success) {
                 const contentData = {
                   screen: screen,
@@ -188,13 +201,7 @@ const KPIAnalysisPage = () => {
               const currentThreshold = display.thresholdIds[currentThresholdIndex];
 
               if (currentThreshold?.collectionName && currentThreshold?.field) {
-                const analysisRes = await analyzeKPIData({
-                  collectionName: currentThreshold.collectionName,
-                  field: currentThreshold.field,
-                  greenThreshold: currentThreshold.green,
-                  amberThreshold: currentThreshold.amber,
-                  direction: currentThreshold.direction
-                });
+                const analysisRes = await analyzeKPIDataWithExcludedFields(currentThreshold);
 
                 if (analysisRes.success) {
                   // UPDATE BOTH SCREEN, DISPLAY CONFIG AND ANALYSIS DATA
