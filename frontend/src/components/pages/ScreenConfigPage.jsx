@@ -10,6 +10,8 @@ import {
   Title,
   Subtitle,
   ActionsBar,
+  LeftSection,
+  SearchInput,
   StatsText,
   ButtonGroup,
   Button,
@@ -43,6 +45,12 @@ const ScreenConfigPage = () => {
   const [selectedScreen, setSelectedScreen] = useState(null);
   const [copiedUrls, setCopiedUrls] = useState({}); // Track copied state for each screen
   const [deletingScreens, setDeletingScreens] = useState(new Set()); // Track screens being deleted
+  const [searchTerm, setSearchTerm] = useState(''); // New state for search functionality
+
+  // Filter screens based on search term
+  const filteredScreens = screens.filter(screen =>
+    screen.screenName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Copy URL to clipboard function
   const handleCopyUrl = async (screenId, url) => {
@@ -194,15 +202,11 @@ const ScreenConfigPage = () => {
     <Page>
       <Container>
         <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
         >
-          <Header
-            initial="hidden"
-            animate="visible"
-            variants={cardVariants}
-          >
+          <Header>
             <Title>Screen Configuration</Title>
             <Subtitle>Assign playlists/displays to physical screens</Subtitle>
           </Header>
@@ -220,14 +224,18 @@ const ScreenConfigPage = () => {
             )}
           </AnimatePresence>
 
-          <ActionsBar
-            initial="hidden"
-            animate="visible"
-            variants={cardVariants}
-          >
-            <StatsText>
-              <strong>{screens.length}</strong> screens configured
-            </StatsText>
+          <ActionsBar>
+            <LeftSection>
+              <StatsText>
+                <strong>{filteredScreens.length}</strong> of <strong>{screens.length}</strong> screens 
+              </StatsText>
+              <SearchInput
+                type="text"
+                placeholder="Search screens by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </LeftSection>
             <ButtonGroup>
               <Button 
                 as={motion.button}
@@ -252,23 +260,18 @@ const ScreenConfigPage = () => {
             </ButtonGroup>
           </ActionsBar>
 
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
+          <motion.div>
             <ScreenGrid>
               <AnimatePresence>
-                {screens.map((screen) => {
+                {filteredScreens.map((screen) => {
                   const isDeleting = deletingScreens.has(screen.screenName);
                   return (
                     <ScreenCard 
                       key={screen._id}
-                      variants={cardVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                      transition={{ duration: 0.3 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.2 }}
                       style={{ 
                         opacity: isDeleting ? 0.5 : 1,
                         pointerEvents: isDeleting ? 'none' : 'auto'
@@ -331,7 +334,7 @@ const ScreenConfigPage = () => {
                           value={screen.displayName || ''}
                           onChange={(e) => handleAssignDisplay(screen.screenName, e.target.value)}
                         >
-                          <option value="">-- Select Display --</option>
+                          <option value="">-- Select Playlist --</option>
                           {displays.map((display) => (
                             <option key={display._id} value={display.displayName}>
                               {display.displayName} ({display.thresholdIds?.length || 0} thresholds)
@@ -390,6 +393,25 @@ const ScreenConfigPage = () => {
                   onClick={() => setShowCreateModal(true)}
                 >
                   Create Screen
+                </Button>
+              </EmptyState>
+            )}
+            
+            {screens.length > 0 && filteredScreens.length === 0 && searchTerm && (
+              <EmptyState>
+                <EmptyStateTitle>No screens found</EmptyStateTitle>
+                <EmptyStateMessage>
+                  No screens match your search for "{searchTerm}"
+                </EmptyStateMessage>
+                <Button 
+                  as={motion.button}
+                  variants={buttonHoverVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  className="secondary" 
+                  onClick={() => setSearchTerm('')}
+                >
+                  Clear Search
                 </Button>
               </EmptyState>
             )}

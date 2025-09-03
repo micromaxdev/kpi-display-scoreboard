@@ -1,7 +1,6 @@
 import Screen from "../models/screenModel.js";
 
 export async function createScreen(screenData) {
-    console.log("Creating screen with data:", screenData);
     const screen = new Screen(screenData);
     await screen.save();
     return screen;

@@ -110,9 +110,35 @@ export const ThresholdsContainer = styled.div`
 
 export const ThresholdsGrid = styled.div`
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 12px;
   margin-top: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+  
+  /* Custom scrollbar styling */
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+    
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
+  
+  /* Firefox scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
 `;
 
 export const ThresholdTab = styled.div`
@@ -128,6 +154,9 @@ export const ThresholdTab = styled.div`
   transform: ${props => props.$isDragging ? 'rotate(2deg)' : 'none'};
   box-shadow: ${props => props.$isDragging ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none'};
   opacity: ${props => props.$isDragging ? 0.8 : 1};
+  flex-shrink: 0;
+  min-width: 200px;
+  white-space: nowrap;
   
   &:hover {
     background: #edf2f7;

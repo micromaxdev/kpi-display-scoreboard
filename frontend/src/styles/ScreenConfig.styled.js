@@ -48,11 +48,50 @@ export const ActionsBar = styled(motion.div)`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
 
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
+  }
+`;
+
+export const LeftSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex: 1;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+  }
+`;
+
+export const SearchInput = styled.input`
+  padding: 0.75rem 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  min-width: 250px;
+  background: white;
+  color: black;
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  
+  &::placeholder {
+    color: #6c757d;
+  }
+
+  @media (max-width: 768px) {
+    min-width: auto;
+    width: 100%;
   }
 `;
 
