@@ -419,7 +419,7 @@ const ScreenConfigPage = () => {
 
           {/* Create Screen Modal */}
           <CreateScreenModal
-            isOpen={showCreateModal}
+            isOpen={showCreateModal}  
             onClose={() => setShowCreateModal(false)}
             onSuccess={handleCreateSuccess}
             onError={handleCreateError}
