@@ -1,12 +1,12 @@
-import express from 'express';
-import { 
+const express = require('express');
+const { 
     getThresholdsByCollection, 
     getThreshold, 
     setThreshold,
     getThresholdById,
     getThresholdExcludedFields,
     getAllThresholds
-} from '../controllers/thresholdController.js';
+} = require('../controllers/thresholdController.js');
 
 const router = express.Router();
 router.get('/all', getAllThresholds); // /api/thresholds/all
@@ -20,4 +20,4 @@ router.get('/excluded-fields', getThresholdExcludedFields); // /api/thresholds/e
 // Parameterized routes should come last
 router.get('/:id', getThresholdById); // GET /api/thresholds/:id
 
-export default router;
+module.exports = router;

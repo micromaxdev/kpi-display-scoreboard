@@ -1,16 +1,16 @@
-import { getDaysDifference} from '../utils/dateUtils.js';
-import { sortCategoryItems,checkThresholds,validateInput } from '../utils/kpiUtils.js';
-import { getAllDataFromCollection } from "../services/dataService.js";
-import { isDueOrInputDate, getDateRAGCategory, getAmountRAGCategory } from '../utils/ragCategoryUtils.js';
+const { getDaysDifference} = require('../utils/dateUtils.js');
+const { sortCategoryItems,checkThresholds,validateInput } = require('../utils/kpiUtils.js');
+const { getAllDataFromCollection } = require("../services/dataService.js");
+const { isDueOrInputDate, getDateRAGCategory, getAmountRAGCategory } = require('../utils/ragCategoryUtils.js');
 
-export function getComparisonValue(item, field){
+function getComparisonValue(item, field){
     if (field.toLowerCase().includes('date')){
         return getDaysDifference(item[field]);
     }
     return item[field];
 }
 
-export function getRAGCategory(value, thresholds, direction, field = '') {
+function getRAGCategory(value, thresholds, direction, field = '') {
     if (isDueOrInputDate(field)) {
         return getDateRAGCategory(value, thresholds, direction);
     } else {
@@ -18,7 +18,7 @@ export function getRAGCategory(value, thresholds, direction, field = '') {
     }
 }
 
-export function categorizeItems(items, field, thresholds, direction) {
+function categorizeItems(items, field, thresholds, direction) {
     return items.map(item => {
         const value = getComparisonValue(item, field);
         const category = getRAGCategory(value, thresholds, direction, field);
@@ -30,7 +30,7 @@ export function categorizeItems(items, field, thresholds, direction) {
     });
 }
 
-export function getTopNCategory(items, n, direction, field = '') {
+function getTopNCategory(items, n, direction, field = '') {
     const grouped = { red: [], amber: [], green: [] };
     items.forEach(item => {
         if (grouped[item.ragCategory]) {
@@ -46,7 +46,7 @@ export function getTopNCategory(items, n, direction, field = '') {
 }
 
 //Validate input parameters and return categorized items workflow 
-export async function processData(collectionName, field, greenThreshold, amberThreshold, direction){
+async function processData(collectionName, field, greenThreshold, amberThreshold, direction){
     // Validate required parameters
     const validated = await validateInput(field, greenThreshold, amberThreshold);
     if (!validated.success) {
@@ -76,3 +76,10 @@ export async function processData(collectionName, field, greenThreshold, amberTh
     return categorizedItems;
 }
 
+module.exports = {
+    getComparisonValue,
+    getRAGCategory,
+    categorizeItems,
+    getTopNCategory,
+    processData
+};

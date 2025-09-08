@@ -1,9 +1,21 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const displaySchema = new mongoose.Schema({
-    displayName: { type: String, required: true, unique: true },
-    time: {type: Number, default: 30},
-    thresholdIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Threshold' }]
-}, { timestamps: true });
+    displayName: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    time: {
+        type: Number,
+        required: true
+    },
+    thresholdIds: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Threshold'
+    }]
+});
 
-export default mongoose.model('Display', displaySchema);
+const Display = mongoose.model('Display', displaySchema);
+
+module.exports = Display;

@@ -1,7 +1,7 @@
 /**
  * Determines if a field is a date-type field (due, input, created, date)
  */
-export function isDueOrInputDate(field) {
+function isDueOrInputDate(field) {
     if (!field) return false;
     const f = field.toLowerCase();
     return (
@@ -15,7 +15,7 @@ export function isDueOrInputDate(field) {
 /**
  * RAG logic for date fields
  */
-export function getDateRAGCategory(value, thresholds, direction) {
+function getDateRAGCategory(value, thresholds, direction) {
     const { green, amber } = thresholds;
     if (direction === 'lower') {
         // For "lower" direction: Recent = Good, Old = Bad
@@ -43,7 +43,7 @@ export function getDateRAGCategory(value, thresholds, direction) {
 /**
  * RAG logic for amount fields
  */
-export function getAmountRAGCategory(value, thresholds, direction) {
+function getAmountRAGCategory(value, thresholds, direction) {
     const { green, amber } = thresholds;
     if (direction === 'lower') {
         if (value <= green) return 'green';
@@ -55,3 +55,9 @@ export function getAmountRAGCategory(value, thresholds, direction) {
         else return 'red';
     }
 }
+
+module.exports = {
+    isDueOrInputDate,
+    getDateRAGCategory,
+    getAmountRAGCategory,
+};

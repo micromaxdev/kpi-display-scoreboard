@@ -1,6 +1,6 @@
-import * as screenService from '../services/screenService.js';
+const screenService = require('../services/screenService.js');
 
-export const createScreen = async (req, res) => {
+const createScreen = async (req, res) => {
     try {
         const { screenName, description, screenUrl, displayName } = req.body;
         const screenNameToLower = screenName.toLowerCase();
@@ -11,7 +11,7 @@ export const createScreen = async (req, res) => {
     }
 };
 
-export const getAllScreens = async (req, res) => {
+const getAllScreens = async (req, res) => {
     try {
         const screens = await screenService.getAllScreens();
         res.status(200).json(screens);
@@ -20,7 +20,7 @@ export const getAllScreens = async (req, res) => {
     }
 };
 
-export const getScreenByName = async (req, res) => {
+const getScreenByName = async (req, res) => {
     try {
         const { screenName } = req.params;
         const screen = await screenService.getScreenByName(screenName);
@@ -33,7 +33,7 @@ export const getScreenByName = async (req, res) => {
     }
 };
 
-export const updateScreen = async (req, res) => {
+const updateScreen = async (req, res) => {
     try {
         const { screenName } = req.params;
         const screenData = req.body;
@@ -47,7 +47,7 @@ export const updateScreen = async (req, res) => {
     }
 };
 
-export const deleteScreen = async (req, res) => {
+const deleteScreen = async (req, res) => {
     try {
         const { screenName } = req.params;
         const deletedScreen = await screenService.deleteScreen(screenName);
@@ -58,4 +58,12 @@ export const deleteScreen = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+};
+
+module.exports = {
+    createScreen,
+    getAllScreens,
+    getScreenByName,
+    updateScreen,
+    deleteScreen
 };

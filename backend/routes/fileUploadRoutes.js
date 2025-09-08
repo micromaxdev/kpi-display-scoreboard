@@ -1,6 +1,6 @@
-import express from 'express';
-import { uploadSingleFile, handleUploadError } from '../middleware/uploadMiddleware.js';
-import { uploadFileToCollection, previewFile } from '../controllers/fileUploadController.js';
+const express = require('express');
+const { uploadSingleFile, handleUploadError } = require('../middleware/uploadMiddleware.js');
+const { uploadFileToCollection, previewFile } = require('../controllers/fileUploadController.js');
 
 const router = express.Router();
 
@@ -19,4 +19,4 @@ router.post(
     previewFile
 );
 
-export default router;
+module.exports = router;

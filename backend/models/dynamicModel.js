@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 // Cache for created models to avoid recreating them
 const modelCache = new Map();
@@ -30,4 +30,4 @@ function getDynamicModel(collectionName) {
   return model;
 }
 
-export default getDynamicModel;
+module.exports = getDynamicModel;

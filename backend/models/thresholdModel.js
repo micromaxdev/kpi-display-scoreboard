@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const thresholdSchema = new mongoose.Schema({
     collectionName: { type: String, required: true },
@@ -20,4 +20,4 @@ const thresholdSchema = new mongoose.Schema({
 
 thresholdSchema.index({ collectionName: 1, field: 1 }, { unique: true });
 
-export default mongoose.model('Threshold', thresholdSchema);
+module.exports = mongoose.model('Threshold', thresholdSchema);

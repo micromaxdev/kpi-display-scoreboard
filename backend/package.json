@@ -1,7 +1,6 @@
 {
   "name": "backend",
   "packageManager": "yarn@4.9.2",
-  "type": "module",
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js"

@@ -1,17 +1,17 @@
-import { 
+const { 
   buildQuery, 
   buildSortOptions, 
   extractQueryParams 
-} from '../services/queryService.js';
-import {
+} = require('../services/queryService.js');
+const {
   getPaginatedDataFromCollection,
   getCollectionFields,
   getListOfCollections
-} from '../services/dataService.js';
+} = require('../services/dataService.js');
 
 
 // Main function to retrieve collection data with pagination and indexing
-export const getPaginatedData = async (req, res) => {
+const getPaginatedData = async (req, res) => {
   try {
     const { collectionName } = req.params;
     const { page, limit, sortBy, sortOrder, filters } = extractQueryParams(req.query);
@@ -48,7 +48,7 @@ export const getPaginatedData = async (req, res) => {
 };
 
 // Function to get list of collections in the database
-export const getCollectionsList = async (req, res) => {
+const getCollectionsList = async (req, res) => {
   try {
     const collections = await getListOfCollections();
     res.json({
@@ -67,7 +67,7 @@ export const getCollectionsList = async (req, res) => {
 };
 
 // Function to get fields of a specific collection
-export const getFieldsOfCollection = async (req, res) => {
+const getFieldsOfCollection = async (req, res) => {
   try {
     const { collectionName } = req.params;
     const result = await getCollectionFields(collectionName);
@@ -94,3 +94,9 @@ export const getFieldsOfCollection = async (req, res) => {
     });
   }
 }
+
+module.exports = {
+    getPaginatedData,
+    getCollectionsList,
+    getFieldsOfCollection
+};

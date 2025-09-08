@@ -1,7 +1,7 @@
-import * as thresholdService from '../services/thresholdService.js';
+const thresholdService = require('../services/thresholdService.js');
 
 // Get all threshold for a collection
-export async function getThresholdsByCollection(req, res) {
+async function getThresholdsByCollection(req, res) {
     const { collectionName } = req.query;
     if (!collectionName) {
         return res.status(400).json({ success: false, message: 'collectionName is required' });
@@ -9,13 +9,13 @@ export async function getThresholdsByCollection(req, res) {
     const thresholds = await thresholdService.getThresholdsByCollection(collectionName);
     res.json({ success: true, thresholds });
 }
-export async function getAllThresholds(req, res) {
+async function getAllThresholds(req, res) {
     const thresholds = await thresholdService.getAllThresholds();
     res.json({ success: true, thresholds });
 }
 
 // Get a threshold for a collection with specific field
-export async function getThreshold(req, res) {
+async function getThreshold(req, res) {
     const { collectionName, field } = req.query;
     if (!collectionName || !field) {
         return res.status(400).json({ success: false, message: 'collectionName and field are required' });
@@ -29,7 +29,7 @@ export async function getThreshold(req, res) {
 
 
 // Create or update a threshold
-export async function setThreshold(req, res) {
+async function setThreshold(req, res) {
     const { collectionName, field, green, amber, direction, excludedFields } = req.body;
     if (!collectionName || !field || green == null || amber == null || !direction) {
         console.error('Missing required fields for threshold:', { collectionName, field, green, amber, direction });
@@ -39,7 +39,7 @@ export async function setThreshold(req, res) {
     res.json({ success: true, threshold: updated });
 }
 
-export async function getThresholdById(req, res) {
+async function getThresholdById(req, res) {
     const { id } = req.params;
     if (!id) {
         return res.status(400).json({ success: false, message: 'ID is required' });
@@ -52,7 +52,7 @@ export async function getThresholdById(req, res) {
 }
 
 // Get threshold excluded fields
-export async function getThresholdExcludedFields(req, res) {
+async function getThresholdExcludedFields(req, res) {
     try {
         const {collectionName, field} = req.query;
 
@@ -85,3 +85,14 @@ export async function getThresholdExcludedFields(req, res) {
         });
     }
 }
+
+
+
+module.exports = {
+    getThresholdsByCollection,
+    getAllThresholds,
+    getThreshold,
+    setThreshold,
+    getThresholdById,
+    getThresholdExcludedFields
+};

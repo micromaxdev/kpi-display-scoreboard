@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+const mongoose = require('mongoose');
 
 const screenSchema = new mongoose.Schema({
   screenName: { type: String, required: true, unique: true },
@@ -10,4 +10,5 @@ const screenSchema = new mongoose.Schema({
 
 const Screen = mongoose.model('Screen', screenSchema)
 
-export default Screen
+
+module.exports = Screen;

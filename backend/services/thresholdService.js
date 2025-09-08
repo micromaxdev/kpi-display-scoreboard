@@ -1,20 +1,20 @@
-import Threshold from '../models/thresholdModel.js';
+const Threshold = require('../models/thresholdModel.js');
 
-export async function getThresholdsByCollection(collectionName) {
+async function getThresholdsByCollection(collectionName) {
     return Threshold.find({ collectionName }, '-__v');
 }
-export async function getAllThresholds() {
+async function getAllThresholds() {
     return Threshold.find({}, '-__v');
 }
-export async function getThreshold(collectionName, field) {
+async function getThreshold(collectionName, field) {
     return Threshold.findOne({ collectionName, field }, '-__v');
 }
 
-export async function getThresholdById(id) {
+async function getThresholdById(id) {
     return Threshold.findById(id, '-__v');
 }
 
-export async function setThreshold({ collectionName, field, green, amber, direction, excludedFields }) {
+async function setThreshold({ collectionName, field, green, amber, direction, excludedFields }) {
     // If excludedFields is explicitly provided (even as undefined), it will overwrite the field.
     // If excludedFields is not provided, it will remain unchanged.
     const update = { green, amber, direction };
@@ -29,7 +29,7 @@ export async function setThreshold({ collectionName, field, green, amber, direct
 }
 
 // Get excluded fields for a threshold
-export async function getThresholdExcludedFields(collectionName, field) {
+async function getThresholdExcludedFields(collectionName, field) {
     try {
         if (!collectionName || !field) {
             return {
@@ -65,3 +65,13 @@ export async function getThresholdExcludedFields(collectionName, field) {
         };
     }
 }
+
+
+module.exports = {
+    getThresholdsByCollection,
+    getAllThresholds,
+    getThreshold,
+    getThresholdById,
+    setThreshold,
+    getThresholdExcludedFields
+};

@@ -1,6 +1,6 @@
 // Excel utils
 // Helper function to get cell border styling
-export function getCellBorder() {
+function getCellBorder() {
     return {
         top: { style: 'thin' },
         left: { style: 'thin' },
@@ -10,7 +10,7 @@ export function getCellBorder() {
 }
 
 // Helper function to apply cell styling
-export function applyCellStyling(cell, fillColor, textColor = 'FF000000', isBold = true) {
+function applyCellStyling(cell, fillColor, textColor = 'FF000000', isBold = true) {
     cell.fill = {
         type: 'pattern',
         pattern: 'solid',
@@ -25,7 +25,7 @@ export function applyCellStyling(cell, fillColor, textColor = 'FF000000', isBold
 }
 
 // Extract original keys from categorized items
-export function getOriginalKeys(categorizedItems) {
+function getOriginalKeys(categorizedItems) {
     if (!categorizedItems || categorizedItems.length === 0) {
         return [];
     }
@@ -36,7 +36,7 @@ export function getOriginalKeys(categorizedItems) {
 }
 
 // Create headers for Excel sheets
-export function createHeaders(originalKeys, analysisField) {
+function createHeaders(originalKeys, analysisField) {
     return [
         ...originalKeys,
         'RAG_Category',
@@ -45,7 +45,7 @@ export function createHeaders(originalKeys, analysisField) {
 }
 
 // Create and populate info section of summary sheet
-export function createInfoSection(summarySheet, collectionName, analysisField, direction, thresholds) {
+function createInfoSection(summarySheet, collectionName, analysisField, direction, thresholds) {
     const infoRows = [
         [`KPI Analysis Report - ${collectionName}`],
         [`Analysis Field: ${analysisField}`],
@@ -66,7 +66,7 @@ export function createInfoSection(summarySheet, collectionName, analysisField, d
 }
 
 // Create summary statistics section
-export function createSummaryStatistics(summarySheet, categorizedItems, ragGroups) {
+function createSummaryStatistics(summarySheet, categorizedItems, ragGroups) {
     const summaryRows = [
         { text: '=== SUMMARY STATISTICS ===', color: 'FFD9D9D9' },
         { text: `Total Items: ${categorizedItems.length}`, color: 'FFD9D9D9' },
@@ -85,7 +85,7 @@ export function createSummaryStatistics(summarySheet, categorizedItems, ragGroup
 }
 
 // Auto-fit columns in a worksheet
-export function autoFitColumns(sheet) {
+function autoFitColumns(sheet) {
     sheet.columns.forEach(column => {
         let maxLength = 0;
         column.eachCell({ includeEmpty: true }, (cell) => {
@@ -99,7 +99,7 @@ export function autoFitColumns(sheet) {
 }
 
 // Create header row for category sheets
-export function createHeaderRow(sheet, headers) {
+function createHeaderRow(sheet, headers) {
     const headerRow = sheet.addRow(headers);
     headerRow.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
     headerRow.fill = {
@@ -111,7 +111,7 @@ export function createHeaderRow(sheet, headers) {
 }
 
 // Create data rows for category sheets
-export function createDataRows(sheet, items, originalKeys, category) {
+function createDataRows(sheet, items, originalKeys, category) {
     items.forEach(item => {
         const rowData = [
             ...originalKeys.map(key => {
@@ -130,7 +130,7 @@ export function createDataRows(sheet, items, originalKeys, category) {
 }
 
 // Create individual category sheet
-export function createCategorySheet(workbook, category, items, headers, originalKeys) {
+function createCategorySheet(workbook, category, items, headers, originalKeys) {
     const sheet = workbook.addWorksheet(category.name);
 
     if (items.length > 0) {
@@ -143,7 +143,7 @@ export function createCategorySheet(workbook, category, items, headers, original
 }
 
 // Create all category sheets
-export function createCategorySheets(workbook, ragGroups, headers, originalKeys) {
+function createCategorySheets(workbook, ragGroups, headers, originalKeys) {
     const categoryOrder = [
         { key: 'red', name: 'Critical Items', color: 'FFFF4444', textColor: 'FFFFFFFF' },
         { key: 'amber', name: 'Warning Items', color: 'FFFFB84D', textColor: 'FF000000' },
@@ -157,7 +157,7 @@ export function createCategorySheets(workbook, ragGroups, headers, originalKeys)
 }
 
 // Helper function to get Excel color codes for RAG categories
-export function getRagExcelColor(ragCategory) {
+function getRagExcelColor(ragCategory) {
     const colorMap = {
         'red': {
             background: 'FF2600',
@@ -178,3 +178,17 @@ export function getRagExcelColor(ragCategory) {
         text: 'FF000000'
     };
 }
+module.exports = {
+    getCellBorder,
+    applyCellStyling,
+    getOriginalKeys,
+    createHeaders,
+    createInfoSection,
+    createSummaryStatistics,
+    autoFitColumns,
+    createCategorySheets,
+    createCategorySheet,
+    createDataRows,
+    createHeaderRow,
+    getRagExcelColor
+};

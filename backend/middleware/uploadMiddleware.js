@@ -1,6 +1,6 @@
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 // Ensure upload directory exists
 const ensureUploadDir = (dir) => {
@@ -57,17 +57,17 @@ const uploadConfig = {
 const upload = multer(uploadConfig);
 
 // Export different upload middleware variants
-export const uploadSingleFile = upload.single('file');
+const uploadSingleFile = upload.single('file');
 
-export const uploadMultipleFiles = upload.array('files', 10); // Max 10 files
+const uploadMultipleFiles = upload.array('files', 10); // Max 10 files
 
-export const uploadFileFields = upload.fields([
+const uploadFileFields = upload.fields([
     { name: 'dataFile', maxCount: 1 },
     { name: 'schemaFile', maxCount: 1 }
 ]);
 
 // Error handling middleware for multer errors
-export const handleUploadError = (error, req, res, next) => {
+const handleUploadError = (error, req, res, next) => {
     if (error instanceof multer.MulterError) {
         switch (error.code) {
             case 'LIMIT_FILE_SIZE':
@@ -106,7 +106,7 @@ export const handleUploadError = (error, req, res, next) => {
 };
 
 // Cleanup middleware to remove temporary files
-export const cleanupTempFiles = (req, res, next) => {
+const cleanupTempFiles = (req, res, next) => {
     // Add cleanup function to response object
     const originalSend = res.send;
     res.send = function(data) {
@@ -134,5 +134,11 @@ export const cleanupTempFiles = (req, res, next) => {
     next();
 };
 
-// Default export for single file upload (most common use case)
-export default uploadSingleFile;
+// Export all functions
+module.exports = {
+    uploadSingleFile,
+    uploadMultipleFiles,
+    uploadFileFields,
+    handleUploadError,
+    cleanupTempFiles
+};

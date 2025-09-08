@@ -1,6 +1,6 @@
-import { processFileData, previewFileData } from '../utils/fileUploadUtils.js';
-import { uploadDataToCollection } from '../services/dataService.js';
-import fs from 'fs';
+const { processFileData, previewFileData } = require('../utils/fileUploadUtils.js');
+const { uploadDataToCollection } = require('../services/dataService.js');
+const fs = require('fs');
 
 /**
  * Get default cleaning options for file processing
@@ -18,7 +18,7 @@ function getDefaultCleaningOptions() {
 /**
  * Upload file to specific collection (simplified)
  */
-export const uploadFileToCollection = async (req, res) => {
+const uploadFileToCollection = async (req, res) => {
     try {
         const { collectionName } = req.params;
         const file = req.file;
@@ -86,7 +86,7 @@ export const uploadFileToCollection = async (req, res) => {
 /**
  * Preview file data without uploading (simplified)
  */
-export const previewFile = async (req, res) => {
+const previewFile = async (req, res) => {
     try {
         const { maxRows = 10 } = req.body;
         const file = req.file;
@@ -129,4 +129,9 @@ export const previewFile = async (req, res) => {
             error: error.message
         });
     }
+};
+
+module.exports = {
+    uploadFileToCollection,
+    previewFile
 };

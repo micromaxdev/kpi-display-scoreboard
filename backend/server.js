@@ -1,14 +1,14 @@
-import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
-import connectDB from "./config/db.js";
-import { errorHandler } from "./middleware/errorMiddleware.js";
-import dynamicModelRouter from "./routes/dynamicModelRoutes.js";
-import kpiRouter from "./routes/kpiRoutes.js";
-import thresholdRouter from "./routes/thresholdRoutes.js";
-import displayRouter from "./routes/displayRoutes.js";
-import fileRouter from "./routes/fileUploadRoutes.js";
-import screenRouter from "./routes/screenRoutes.js";
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const connectDB = require("./config/db.js");
+const { errorHandler } = require("./middleware/errorMiddleware.js");
+const dynamicModelRouter = require("./routes/dynamicModelRoutes.js");
+const kpiRouter = require("./routes/kpiRoutes.js");
+const thresholdRouter = require("./routes/thresholdRoutes.js");
+const displayRouter = require("./routes/displayRoutes.js");
+const fileRouter = require("./routes/fileUploadRoutes.js");
+const screenRouter = require("./routes/screenRoutes.js");
 dotenv.config();
 
 const port = process.env.PORT || 5000;

@@ -1,7 +1,7 @@
-import { getTopNCategory, processData } from "../services/kpiService.js";
-import { createColorCodedExcel, filterExcludedFields } from "../utils/kpiUtils.js";
+const { getTopNCategory, processData } = require("../services/kpiService.js");
+const { createColorCodedExcel, filterExcludedFields } = require("../utils/kpiUtils.js");
 
-export const analyzeKPIData = async (req, res) => {
+const analyzeKPIData = async (req, res) => {
     try {
         const {collectionName, field, greenThreshold, amberThreshold, direction, excludedFields = []} = req.body;
         
@@ -43,7 +43,7 @@ export const analyzeKPIData = async (req, res) => {
 
 }
 
-export const downloadExcel = async (req, res) => {
+const downloadExcel = async (req, res) => {
     try {
         const { collectionName, field, greenThreshold, amberThreshold, direction } = req.body;
 
@@ -70,4 +70,7 @@ export const downloadExcel = async (req, res) => {
     }
 }
 
-
+module.exports = {
+    analyzeKPIData,
+    downloadExcel
+};

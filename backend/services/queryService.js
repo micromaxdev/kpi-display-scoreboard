@@ -1,11 +1,11 @@
-import { normalizeDateFormat, isLikelyDate } from '../utils/dateUtils.js';
+const { normalizeDateFormat, isLikelyDate } = require('../utils/dateUtils.js');
 
 /**
  * Builds a MongoDB query object from request filters
  * @param {Object} filters - The filters from request query parameters
  * @returns {Object} MongoDB query object
  */
-export function buildQuery(filters) {
+function buildQuery(filters) {
   const query = {};
   
   Object.keys(filters).forEach(key => {
@@ -14,7 +14,7 @@ export function buildQuery(filters) {
       try {
         const parsed = JSON.parse(value);
 
-        // e.g. dueDate={"$gte":"06/08/25", "$lte":"10/08/25"}
+        // e.g. dueDate={"gte":"06/08/25", "lte":"10/08/25"}
         if (typeof parsed === 'object' && parsed !== null) {
           Object.keys(parsed).forEach(op => {
             if (typeof parsed[op] === 'string' && isLikelyDate(parsed[op])) {
@@ -40,7 +40,7 @@ export function buildQuery(filters) {
  * @param {string} sortOrder - Sort order ('asc' or 'desc')
  * @returns {Object} MongoDB sort options
  */
-export function buildSortOptions(sortBy = '_id', sortOrder = 'desc') {
+function buildSortOptions(sortBy = '_id', sortOrder = 'desc') {
   const sortOptions = {};
   sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
   return sortOptions;
@@ -53,7 +53,7 @@ export function buildSortOptions(sortBy = '_id', sortOrder = 'desc') {
  * @param {number} total - Total number of documents
  * @returns {Object} Pagination information
  */
-export function buildPaginationInfo(page, limit, total) {
+function buildPaginationInfo(page, limit, total) {
   const currentPage = parseInt(page);
   const itemsPerPage = parseInt(limit);
   const totalPages = Math.ceil(total / itemsPerPage);
@@ -73,7 +73,7 @@ export function buildPaginationInfo(page, limit, total) {
  * @param {Object} query - Request query object
  * @returns {Object} Extracted and validated parameters
  */
-export function extractQueryParams(query) {
+function extractQueryParams(query) {
   const { 
     page = 1, 
     limit = 50, 
@@ -90,3 +90,10 @@ export function extractQueryParams(query) {
     filters
   };
 }
+
+module.exports = {
+    buildQuery,
+    buildSortOptions,
+    buildPaginationInfo,
+    extractQueryParams
+};

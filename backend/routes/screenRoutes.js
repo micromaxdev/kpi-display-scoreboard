@@ -1,5 +1,5 @@
-import express from 'express'
-import { createScreen, getScreenByName, deleteScreen, getAllScreens,updateScreen } from '../controllers/screenController.js'
+const express = require('express')
+const { createScreen, getScreenByName, deleteScreen, getAllScreens,updateScreen } = require('../controllers/screenController.js')
 const router = express.Router()
 
 router.post('/', createScreen)
@@ -8,4 +8,4 @@ router.get('/', getAllScreens)
 router.put('/:screenName', updateScreen)
 router.delete('/:screenName', deleteScreen)
 
-export default router
+module.exports = router

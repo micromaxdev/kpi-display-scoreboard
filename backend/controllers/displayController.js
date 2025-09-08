@@ -1,6 +1,6 @@
-import * as displayService from "../services/displayService.js";
+const displayService = require("../services/displayService.js");
 
-export async function setDisplay(req, res) {
+async function setDisplay(req, res) {
     try {
         const { displayName, time, thresholdIds } = req.body;
         const display = await displayService.setDisplay(displayName, { time, thresholdIds });
@@ -11,7 +11,7 @@ export async function setDisplay(req, res) {
     }
 }
 
-export async function getAllDisplays(req, res) {
+async function getAllDisplays(req, res) {
     try {
         const displays = await displayService.getAllDisplays();
         res.json({ success: true, displays });
@@ -21,7 +21,7 @@ export async function getAllDisplays(req, res) {
     }
 }
 
-export async function getDisplayByName(req, res) {
+async function getDisplayByName(req, res) {
     const { displayName } = req.params;
     try {
         const display = await displayService.getDisplayByName(displayName);
@@ -35,7 +35,7 @@ export async function getDisplayByName(req, res) {
     }
 }   
 
-export async function deleteDisplay(req, res) {
+async function deleteDisplay(req, res) {
     const { displayName } = req.params;
     try {
         const deletedDisplay = await displayService.deleteDisplay(displayName);
@@ -49,7 +49,7 @@ export async function deleteDisplay(req, res) {
     }
 }
 
-export  async function saveOrUpdateDisplay(req, res){
+async function saveOrUpdateDisplay(req, res){
     try {
         const {displayName, time, thresholdId} = req.body;
 
@@ -78,7 +78,7 @@ export  async function saveOrUpdateDisplay(req, res){
     }
 }
 
-export async function addThresholdId(req, res) {
+async function addThresholdId(req, res) {
     const { displayName, thresholdId } = req.body;
     try {
         const updatedDisplay = await displayService.addThresholdId(displayName, thresholdId);
@@ -92,7 +92,7 @@ export async function addThresholdId(req, res) {
     }
 }
 
-export async function deleteThresholdId(req, res) {
+async function deleteThresholdId(req, res) {
     const { displayName, thresholdId } = req.body;
     try {
         const updatedDisplay = await displayService.deleteThresholdId(displayName, thresholdId);
@@ -106,7 +106,7 @@ export async function deleteThresholdId(req, res) {
     }
 }
 
-export async function reorderThresholds(req, res) {
+async function reorderThresholds(req, res) {
     const { displayName } = req.params;
     const { thresholdIds } = req.body;
     try {
@@ -120,3 +120,14 @@ export async function reorderThresholds(req, res) {
         res.status(500).json({ success: false, message: error.message });
     }
 }
+
+module.exports = {
+    setDisplay,
+    getAllDisplays,
+    getDisplayByName,
+    deleteDisplay,
+    saveOrUpdateDisplay,
+    addThresholdId,
+    deleteThresholdId,
+    reorderThresholds
+};

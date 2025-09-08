@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
-import getDynamicModel from "../models/dynamicModel.js";
-import { buildPaginationInfo } from "./queryService.js";
+const mongoose = require("mongoose");
+const getDynamicModel = require("../models/dynamicModel.js");
+const { buildPaginationInfo } = require("./queryService.js");
+
 /**
  * Get paginated data from a specific collection
  * @param {string} collectionName - The name of the collection
@@ -10,7 +11,7 @@ import { buildPaginationInfo } from "./queryService.js";
  * @param {number} limit - Number of items per page
  * @returns {Promise<Object>} Paginated data with metadata
  */
-export const getPaginatedDataFromCollection = async (collectionName, filter = {}, sortOptions = {}, page = 1, limit = 50) => {
+const getPaginatedDataFromCollection = async (collectionName, filter = {}, sortOptions = {}, page = 1, limit = 50) => {
   try {
     if (!collectionName) {
       throw new Error('Collection name is required');
@@ -50,7 +51,7 @@ export const getPaginatedDataFromCollection = async (collectionName, filter = {}
  * @param {string} collectionName - The name of the collection
  * @returns {Promise<Object>} All data from the collection
  */
-export const getAllDataFromCollection = async (collectionName) => {
+const getAllDataFromCollection = async (collectionName) => {
     try {
         if (!collectionName) {
             throw new Error('Collection name is required');
@@ -83,7 +84,7 @@ export const getAllDataFromCollection = async (collectionName) => {
  * @param {Object} filter - Optional filter object
  * @returns {Promise<number>} Count of documents
  */
-export const getCountFromCollection = async (collectionName, filter = {}) => {
+const getCountFromCollection = async (collectionName, filter = {}) => {
   try {
     if (!collectionName) {
       throw new Error('Collection name is required');
@@ -108,7 +109,7 @@ export const getCountFromCollection = async (collectionName, filter = {}) => {
  * @param {string} collectionName - The name of the collection
  * @returns {Promise<Array<string>>} Array of field names
  */
-export const getCollectionFields = async (collectionName) => {
+const getCollectionFields = async (collectionName) => {
     try {
         if (!collectionName) {
             throw new Error('Collection name is required');
@@ -134,7 +135,7 @@ export const getCollectionFields = async (collectionName) => {
 /** * Get a list of all collections in the database
  * @returns {Promise<Object>} Object containing collection names and total count
  */
-export const getListOfCollections = async () => {
+const getListOfCollections = async () => {
     try {
         const collections = await mongoose.connection.db.listCollections().toArray();
         const collectionNames = collections.map(col => col.name);
@@ -154,7 +155,7 @@ export const getListOfCollections = async () => {
  * @param {Array<Object>} dataArray - The array of data to upload
  * @returns {Promise<Object>} Result of the upload operation
  */
-export const uploadDataToCollection = async (collectionName, dataArray) => {
+const uploadDataToCollection = async (collectionName, dataArray) => {
   try {
     if (!collectionName || !Array.isArray(dataArray)) {
       throw new Error('Invalid input');
@@ -175,3 +176,12 @@ export const uploadDataToCollection = async (collectionName, dataArray) => {
     throw new Error(`Error uploading data to collection '${collectionName}': ${error.message}`);
   }
 }
+
+module.exports = {
+    getPaginatedDataFromCollection,
+    getAllDataFromCollection,
+    getCountFromCollection,
+    getCollectionFields,
+    getListOfCollections,
+    uploadDataToCollection
+};

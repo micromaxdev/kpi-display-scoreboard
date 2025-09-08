@@ -1,5 +1,5 @@
-import express from 'express';
-import { setDisplay, getDisplayByName, addThresholdId, deleteThresholdId, deleteDisplay, saveOrUpdateDisplay,reorderThresholds,getAllDisplays } from '../controllers/displayController.js';
+const express = require('express');
+const { setDisplay, getDisplayByName, addThresholdId, deleteThresholdId, deleteDisplay, saveOrUpdateDisplay,reorderThresholds,getAllDisplays } = require('../controllers/displayController.js');
 const router = express.Router();
 
 router.post('/', setDisplay);
@@ -11,4 +11,4 @@ router.put('/:displayName/thresholds/reorder', reorderThresholds);
 router.delete('/:displayName/thresholds', deleteThresholdId);
 router.delete('/:displayName', deleteDisplay);
 
-export default router;
+module.exports = router;
