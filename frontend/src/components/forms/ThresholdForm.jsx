@@ -11,8 +11,10 @@ import {
 import { useMemo, useState, useEffect } from 'react';
 import { useThresholdFormWithData } from '../../hooks/useThresholdForm';
 import { getDirectionSuggestion } from '../../utils/fieldUtils';
+import { fetchCollectionFields } from '../../services/apiService';
 import CollectionDataTable from '../data/CollectionDataTable';
 import FileUploadModal from '../modals/FileUploadModal';
+import ExcludedFieldsModal from '../modals/ExcludedFieldsModal';
 import CollectionSelector from '../selectors/CollectionSelector';
 import FieldSelector from '../selectors/FieldSelector';
 import ThresholdConfig from '../config/ThresholdConfig';
@@ -50,6 +52,7 @@ const ThresholdForm = () => {
     validation,
     refetchCollections,
     fetchAndPopulateThreshold,
+    fetchExcludedFieldsForCurrentSelection,
     autoPopulating // <-- new state from hook
   } = useThresholdFormWithData(selectedDisplay); // Pass selectedDisplay to hook
 
@@ -63,6 +66,21 @@ const ThresholdForm = () => {
 
   // File upload modal state
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+  // Excluded fields modal state
+  const [isExcludedFieldsModalOpen, setIsExcludedFieldsModalOpen] = useState(false);
+  const [modalCollectionFields, setModalCollectionFields] = useState([]);
+  const [currentExcludedFields, setCurrentExcludedFields] = useState([]);
+
+  // Reset excluded fields when collection or field changes and fetch new ones
+  useEffect(() => {
+    const fetchExcludedFields = async () => {
+      const excludedFields = await fetchExcludedFieldsForCurrentSelection(formData.selectedCollection, formData.selectedField);
+      setCurrentExcludedFields(excludedFields);
+    };
+
+    fetchExcludedFields();
+  }, [formData.selectedCollection, formData.selectedField, fetchExcludedFieldsForCurrentSelection]);
 
   // Get direction suggestion for the selected field
   const directionSuggestion = useMemo(() => {
@@ -91,6 +109,53 @@ const ThresholdForm = () => {
     refetchCollections();
   };
 
+  // Handle opening excluded fields modal
+  const handleOpenExcludedFieldsModal = async () => {
+    console.log('🔧 Excluded Fields button clicked!');
+    
+    if (!formData.selectedCollection) {
+      alert('Please select a collection first.');
+      return;
+    }
+
+    if (!formData.selectedField) {
+      alert('Please select a field first.');
+      return;
+    }
+
+    try {
+      // Get all fields for the selected collection
+      console.log('Fetching fields for collection:', formData.selectedCollection);
+      const fieldsResponse = await fetchCollectionFields(formData.selectedCollection);
+      
+      if (!fieldsResponse.success) {
+        alert('Failed to fetch collection fields. Please try again.');
+        return;
+      }
+
+      // Use the already fetched excluded fields from state
+      console.log('Using excluded fields from state:', currentExcludedFields);
+
+      // Set the modal data
+      setModalCollectionFields(fieldsResponse.fields || []);
+      setIsExcludedFieldsModalOpen(true);
+      
+      console.log('Modal opened with fields:', fieldsResponse.fields);
+      console.log('Using excluded fields:', currentExcludedFields);
+      
+    } catch (error) {
+      console.error('Error opening excluded fields modal:', error);
+      alert('Error loading data. Please try again.');
+    }
+  };
+
+  // Handle excluded fields changes from modal
+  const handleExcludedFieldsChange = (excludedFields) => {
+    console.log('Excluded fields updated in state:', excludedFields);
+    setCurrentExcludedFields(excludedFields);
+    console.log('Current excluded fields state after update:', excludedFields);
+  };
+
   // Auto-populate thresholds and direction when both collection and field are chosen
   useEffect(() => {
     if (selectedCollection && selectedField) {
@@ -104,13 +169,14 @@ const ThresholdForm = () => {
 
   // Wrap handlePreview and handleSaveAndPreview to set submitting state
   const handlePreviewWithLoading = async (e) => {
+    console.log('Preview with excluded fields:', currentExcludedFields);
     setSubmitting(true);
-    await handlePreview(e);
+    await handlePreview(e, currentExcludedFields);
     setSubmitting(false);
   };
   const handleSaveAndPreviewWithLoading = async (e) => {
     setSubmitting(true);
-    await handleSaveAndPreview(e);
+    await handleSaveAndPreview(currentExcludedFields);
     setSubmitting(false);
   };
 
@@ -142,7 +208,10 @@ const ThresholdForm = () => {
     }
   };
 
-  const buttonsEnabled = safeValidation.isValid && !submitting;
+  const buttonsEnabled = safeValidation.isValid && 
+                         !submitting && 
+                         formData.selectedCollection && 
+                         formData.selectedField;
 
   return (
     <Page>
@@ -155,7 +224,7 @@ const ThresholdForm = () => {
 
       <Content>
         <FormSection>
-          <CardForm onSubmit={handlePreview} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <CardForm onSubmit={handlePreviewWithLoading} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             {/* Collection Selection - Full Width */}
             <CollectionSelector
               selectedCollection={selectedCollection}
@@ -163,6 +232,8 @@ const ThresholdForm = () => {
               loading={loading}
               onCollectionChange={(value) => updateField('selectedCollection', value)}
               onUploadClick={() => setIsUploadModalOpen(true)}
+              onExcludedFieldsClick={handleOpenExcludedFieldsModal}
+              disabled={!buttonsEnabled}
             />
 
             {/* Field and Threshold Configuration */}
@@ -229,6 +300,16 @@ const ThresholdForm = () => {
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onUploadSuccess={handleUploadSuccess}
+      />
+
+      {/* Excluded Fields Modal */}
+      <ExcludedFieldsModal
+        isOpen={isExcludedFieldsModalOpen}
+        onClose={() => setIsExcludedFieldsModalOpen(false)}
+        collectionFields={modalCollectionFields}
+        isValid={buttonsEnabled}
+        onExcludedFieldsChange={handleExcludedFieldsChange}
+        initialExcludedFields={currentExcludedFields}
       />
     </Page>
   );

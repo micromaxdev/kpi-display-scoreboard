@@ -1,9 +1,9 @@
 /**
  * Custom hooks for threshold form management
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchCollections, fetchCollectionFields, saveThreshold, fetchCollectionSampleData, analyzeKPIData, saveDisplayConfig, fetchSingleThreshold } from '../services/apiService';
+import { fetchCollections, fetchCollectionFields, saveThreshold, fetchCollectionSampleData, analyzeKPIData, saveDisplayConfig, fetchSingleThreshold, fetchExcludedFields } from '../services/apiService';
 import { filterMeasurableFields } from '../utils/fieldUtils';
 import { validateThresholdForm, createMessage, getInitialFormState, checkThresholds } from '../utils/formUtils';
 
@@ -171,6 +171,36 @@ export const useThresholdForm = (selectedDisplayName = null) => {
   const [autoPopulating, setAutoPopulating] = useState(false);
 
   /**
+   * Function to fetch excluded fields for current selection
+   */
+  const fetchExcludedFieldsForCurrentSelection = useCallback(async (collectionName, field) => {
+    if (collectionName && field) {
+      console.log('Fetching excluded fields for:', collectionName, field);
+      
+      try {
+        const excludedFieldsResponse = await fetchExcludedFields(collectionName, field);
+        
+        if (excludedFieldsResponse.success) {
+          const fetchedExcludedFields = excludedFieldsResponse.excludedFields || [];
+          console.log('Auto-fetched excluded fields:', fetchedExcludedFields);
+          return fetchedExcludedFields;
+        } else {
+          // If no excluded fields found or error, return empty array
+          console.log('No excluded fields found, returning empty array');
+          return [];
+        }
+      } catch (error) {
+        console.error('Error auto-fetching excluded fields:', error);
+        return [];
+      }
+    } else {
+      // Return empty array when collection or field is not selected
+      console.log('Missing collection/field, returning empty array');
+      return [];
+    }
+  }, []);
+
+  /**
    * Fetch and populate threshold data and direction when collection and field are chosen
    */
   const fetchAndPopulateThreshold = async (collectionName, field) => {
@@ -267,7 +297,7 @@ export const useThresholdForm = (selectedDisplayName = null) => {
   };
 
   // Shared logic for preview and save+preview
-  const processForm = async ({ save = false, e = null }) => {
+  const processForm = async ({ save = false, e = null, excludedFields = [] }) => {
     if (e) e.preventDefault();
 
     // Validate form
@@ -291,7 +321,8 @@ export const useThresholdForm = (selectedDisplayName = null) => {
           field: validation.values.field,
           green: parseFloat(validation.values.green),
           amber: parseFloat(validation.values.amber),
-          direction: validation.values.direction
+          direction: validation.values.direction,
+          ...(excludedFields.length > 0 && { excludedFields })
         };
 
         const saveResult = await saveThreshold(thresholdData);
@@ -326,8 +357,11 @@ export const useThresholdForm = (selectedDisplayName = null) => {
         field: validation.values.field,
         greenThreshold: parseFloat(validation.values.green),
         amberThreshold: parseFloat(validation.values.amber),
-        direction: validation.values.direction
+        direction: validation.values.direction,
+        excludedFields: excludedFields
       };
+
+      console.log('Analysis data with excluded fields:', analysisData);
 
       const analysisResult = await analyzeKPIData(analysisData);
 
@@ -360,10 +394,10 @@ export const useThresholdForm = (selectedDisplayName = null) => {
   };
 
   // Handle form submission (preview only, no save)
-  const handlePreview = (e) => processForm({ save: false, e });
+  const handlePreview = (e, excludedFields = []) => processForm({ save: false, e, excludedFields });
 
   // Handle save and preview (saves to database then navigates to preview)
-  const handleSaveAndPreview = () => processForm({ save: true });
+  const handleSaveAndPreview = (excludedFields = []) => processForm({ save: true, excludedFields });
 
   return {
     formData,
@@ -377,6 +411,7 @@ export const useThresholdForm = (selectedDisplayName = null) => {
     handlePreview,
     handleSaveAndPreview,
     fetchAndPopulateThreshold,
+    fetchExcludedFieldsForCurrentSelection,
     validation: validateThresholdForm(formData)
   };
 };

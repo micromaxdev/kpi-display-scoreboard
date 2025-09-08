@@ -270,7 +270,8 @@ export const saveThreshold = async (thresholdData) => {
       field: thresholdData.field,
       green: thresholdData.green,
       amber: thresholdData.amber,
-      direction: thresholdData.direction
+      direction: thresholdData.direction,
+      ...(thresholdData.excludedFields && { excludedFields: thresholdData.excludedFields })
     };
     const response = await fetch(`${API_BASE_URL}/threshold-api`, {
       method: 'POST',
@@ -733,6 +734,32 @@ export const deleteDisplay = async (displayName) => {
       success: false,
       message: 'Error connecting to server',
       error: error.message
+    };
+  }
+};
+
+/**
+ * Fetches excluded fields for a threshold by collection and field
+ * @param {string} collectionName - Name of the collection
+ * @param {string} field - Field name
+ * @returns {Promise<object>} - API response with excluded fields
+ */
+export const fetchExcludedFields = async (collectionName, field) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/threshold-api/excluded-fields?collectionName=${encodeURIComponent(collectionName)}&field=${encodeURIComponent(field)}`);
+    const data = await response.json();
+    
+    return {
+      success: data.success,
+      excludedFields: data.data?.excludedFields || [],
+      error: data.error || null
+    };
+  } catch (error) {
+    console.error('Error fetching excluded fields:', error);
+    return {
+      success: false,
+      excludedFields: [],
+      error: 'Error connecting to server'
     };
   }
 };

@@ -12,20 +12,35 @@ const CollectionSelector = ({
   collections,
   loading,
   onCollectionChange,
-  onUploadClick
+  onUploadClick,
+  onExcludedFieldsClick,
+  disabled = false
 }) => {
   return (
     <CollectionSection>
       <FormGroup>
         <LabelRow>
           <label htmlFor="collection">Collection *</label>
-          <UploadButton 
-            type="button"
-            onClick={onUploadClick}
-            title="Upload new data file"
-          >
-            📤 Upload File
-          </UploadButton>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <UploadButton 
+              type="button"
+              onClick={onUploadClick}
+              title="Upload new data file"
+            >
+              📤 Upload File
+            </UploadButton>
+            <UploadButton 
+              type="button"
+              onClick={() => {
+                console.log('🔧 Excluded Fields button clicked in CollectionSelector!');
+                onExcludedFieldsClick();
+              }}
+              disabled={disabled}
+              title="Manage excluded fields for thresholds"
+            >
+              🔧 Excluded Fields
+            </UploadButton>
+          </div>
         </LabelRow>
         <select
           id="collection"

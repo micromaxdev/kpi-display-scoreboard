@@ -491,18 +491,24 @@ export const UploadButton = styled.button`
   gap: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
-  &:hover {
+  &:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: translateY(0);
   }
 
   &:focus {
     outline: 2px solid rgba(102, 126, 234, 0.5);
     outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
   }
 `;
 
