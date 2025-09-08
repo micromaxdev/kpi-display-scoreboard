@@ -3,7 +3,9 @@ import Threshold from '../models/thresholdModel.js';
 export async function getThresholdsByCollection(collectionName) {
     return Threshold.find({ collectionName }, '-__v');
 }
-
+export async function getAllThresholds() {
+    return Threshold.find({}, '-__v');
+}
 export async function getThreshold(collectionName, field) {
     return Threshold.findOne({ collectionName, field }, '-__v');
 }

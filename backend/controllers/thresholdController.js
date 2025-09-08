@@ -9,6 +9,10 @@ export async function getThresholdsByCollection(req, res) {
     const thresholds = await thresholdService.getThresholdsByCollection(collectionName);
     res.json({ success: true, thresholds });
 }
+export async function getAllThresholds(req, res) {
+    const thresholds = await thresholdService.getAllThresholds();
+    res.json({ success: true, thresholds });
+}
 
 // Get a threshold for a collection with specific field
 export async function getThreshold(req, res) {

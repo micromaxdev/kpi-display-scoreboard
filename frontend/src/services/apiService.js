@@ -361,33 +361,6 @@ export const fetchThreshold = async (collectionName, field) => {
 };
 
 /**
- * Fetches all thresholds for a specific collection
- * @param {string} collectionName - Name of the collection
- * @returns {Promise<object>} - API response with thresholds data
- */
-export const fetchThresholdsByCollection = async (collectionName) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/threshold-api/?collectionName=${collectionName}`);
-    const data = await response.json();
-    
-    console.log('Collection thresholds response:', data);
-    
-    return {
-      success: data.success,
-      thresholds: data.thresholds || [],
-      error: null
-    };
-  } catch (error) {
-    console.error('Error fetching collection thresholds:', error);
-    return {
-      success: false,
-      thresholds: [],
-      error: 'Error fetching collection thresholds'
-    };
-  }
-};
-
-/**
  * Calls the analyze API with given parameters
  * @param {{collectionName: string, field: string, greenThreshold: string|number, amberThreshold: string|number, direction: 'higher'|'lower'}} payload
  * @returns {Promise<object>} - API response from analyze

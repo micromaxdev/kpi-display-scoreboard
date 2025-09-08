@@ -237,18 +237,6 @@ export class DisplayService {
         };
     }
     };
-  // /**
-  //  * Get list of available display options
-  //  * @returns {Array<string>} Array of display names
-  //  */
-  // static getDisplayOptions() {
-  //   return [
-  //     'dashboard',
-  //     'sales-board',
-  //     'operations-display',
-  //     'executive-summary'
-  //   ];
-  // }
 }
 
 export default DisplayService;
