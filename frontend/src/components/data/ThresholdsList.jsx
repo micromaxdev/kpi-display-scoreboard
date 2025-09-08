@@ -1,3 +1,4 @@
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ThresholdsContainer,
   ThresholdsHeader,
@@ -54,34 +55,48 @@ const ThresholdsList = ({
       </ThresholdsHeader>
       
       <ThresholdsGrid>
-        {thresholds.map((threshold, index) => (
-          <DynamicThresholdTab 
-            key={threshold._id || index}
-            draggable={!reorderLoading}
-            $isDragging={draggedItem === index}
-            $dragOverIndex={dragOverIndex}
-            $index={index}
-            onDragStart={(e) => onDragStart(e, index)}
-            onDragOver={(e) => onDragOver(e, index)}
-            onDragLeave={onDragLeave}
-            onDrop={(e) => onDrop(e, index)}
-            onDragEnd={onDragEnd}
-          >
-            <OrderNumber>{index + 1}</OrderNumber>
-            <DragHandle title="Drag to reorder">⋮⋮</DragHandle>
-            <ThresholdInfo>
-              <CollectionName>{threshold.collectionName}</CollectionName>
-              <FieldName>{threshold.field}</FieldName>
-            </ThresholdInfo>
-            <RemoveButton
-              onClick={() => onThresholdRemove(threshold._id)}
-              disabled={removingThreshold === threshold._id || reorderLoading}
-              title="Remove threshold"
+        <AnimatePresence mode="popLayout">
+          {thresholds.map((threshold, index) => (
+            <motion.div
+              key={threshold._id || index}
+              initial={{ opacity: 0, scale: 0.8, y: -20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -20 }}
+              transition={{ 
+                duration: 0.6,
+                ease: "easeOut",
+                delay: index * 0.1 // Stagger animation for multiple items
+              }}
+              layout
             >
-              {removingThreshold === threshold._id ? '...' : '×'}
-            </RemoveButton>
-          </DynamicThresholdTab>
-        ))}
+              <DynamicThresholdTab 
+                draggable={!reorderLoading}
+                $isDragging={draggedItem === index}
+                $dragOverIndex={dragOverIndex}
+                $index={index}
+                onDragStart={(e) => onDragStart(e, index)}
+                onDragOver={(e) => onDragOver(e, index)}
+                onDragLeave={onDragLeave}
+                onDrop={(e) => onDrop(e, index)}
+                onDragEnd={onDragEnd}
+              >
+                <OrderNumber>{index + 1}</OrderNumber>
+                <DragHandle title="Drag to reorder">⋮⋮</DragHandle>
+                <ThresholdInfo>
+                  <CollectionName>{threshold.collectionName}</CollectionName>
+                  <FieldName>{threshold.field}</FieldName>
+                </ThresholdInfo>
+                <RemoveButton
+                  onClick={() => onThresholdRemove(threshold._id)}
+                  disabled={removingThreshold === threshold._id || reorderLoading}
+                  title="Remove threshold"
+                >
+                  {removingThreshold === threshold._id ? '...' : '×'}
+                </RemoveButton>
+              </DynamicThresholdTab>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </ThresholdsGrid>
     </ThresholdsContainer>
   );

@@ -4,6 +4,7 @@ import { fetchAllThresholds, saveDisplayConfig } from '../../services/apiService
 import {
   ThresholdsContainer,
   ThresholdsHeader,
+
   EmptyState,
   ErrorMessage,
   LoadingSpinner
@@ -94,10 +95,7 @@ const SavedThresholdsList = ({ selectedDisplay, onThresholdAssigned }) => {
 
       if (response.success) {
         setAssignSuccess(`✅ Threshold "${selectedThreshold.collectionName} - ${selectedThreshold.field}" successfully assigned to "${selectedDisplay}"`);
-        // Delay clearing the selected threshold to allow for smooth animation
-        setTimeout(() => {
-          setSelectedThreshold(null);
-        }, 500);
+        setSelectedThreshold(null);
         // Clear success message after 3 seconds
         setTimeout(() => {
           setAssignSuccess(null);
@@ -158,8 +156,14 @@ const SavedThresholdsList = ({ selectedDisplay, onThresholdAssigned }) => {
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          layout
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '1rem',
+            overflow: 'hidden' // Prevents content jumping during transitions
+          }}
         >
           {/* Dropdown Selection */}
           <motion.div 
@@ -175,7 +179,7 @@ const SavedThresholdsList = ({ selectedDisplay, onThresholdAssigned }) => {
                 onChange={(e) => handleThresholdSelect(e.target.value)}
                 key={selectedThreshold ? 'selected' : 'empty'} // Force re-render when threshold is cleared
               >
-                <option value="">-- Choose a threshold --</option>
+                <option value="" disabled>-- Choose a threshold --</option>
                 {thresholds.map((threshold) => (
                   <option key={threshold._id} value={threshold._id}>
                     {threshold.collectionName} - {threshold.field} {getDirectionIcon(threshold.direction)}
@@ -239,22 +243,23 @@ const SavedThresholdsList = ({ selectedDisplay, onThresholdAssigned }) => {
           <AnimatePresence mode="wait">
             {selectedThreshold && (
               <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ 
-                duration: 0.7, 
-                ease: "easeInOut"
-              }}
-              style={{
-                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-                border: '2px solid #4299e1',
-                borderRadius: '12px',
-                padding: '1.5rem',
-                marginTop: '1rem',
-                boxShadow: '0 8px 25px rgba(66, 153, 225, 0.15)'
-              }}
-            >
+                initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -15, scale: 0.95 }}
+                transition={{ 
+                  duration: 0.6, 
+                  ease: [0.25, 0.46, 0.45, 0.94] // Custom cubic-bezier for smooth feel
+                }}
+                layout
+                style={{
+                  background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                  border: '2px solid #4299e1',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  marginTop: '1rem',
+                  boxShadow: '0 8px 25px rgba(66, 153, 225, 0.15)'
+                }}
+              >
               <h5 style={{ 
                 margin: '0 0 1rem 0', 
                 color: '#2d3748', 
