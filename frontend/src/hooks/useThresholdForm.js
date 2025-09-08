@@ -373,7 +373,7 @@ export const useThresholdForm = (selectedDisplayName = null) => {
       }
 
       // Navigate to preview page with results
-      navigate('/preview', {
+      navigate('/show-preview', {
         state: {
           analysisData: analysisResult.data,
           field: validation.values.field,

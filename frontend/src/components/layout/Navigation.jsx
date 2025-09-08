@@ -71,7 +71,12 @@ const Navigation = () => {
         </Brand>
         <NavItem>
           <NavLink to="/" $isActive={location.pathname === '/'}>
-            Threshold Config
+            Configure Threshold
+          </NavLink>
+        </NavItem>
+        <NavItem>
+          <NavLink to="/playlist" $isActive={location.pathname === '/playlist'}>
+            Configure Playlist
           </NavLink>
         </NavItem>
         <NavItem>

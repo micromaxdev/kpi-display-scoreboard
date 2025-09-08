@@ -20,7 +20,6 @@ import FieldSelector from '../selectors/FieldSelector';
 import ThresholdConfig from '../config/ThresholdConfig';
 import ThresholdInfoPanel from '../data/ThresholdInfoPanel';
 import FormActions from './FormActions';
-import DisplaySelector from '../selectors/DisplaySelector';
 
 const ThresholdForm = () => {
   // Display state for passing to hook
@@ -274,18 +273,7 @@ const ThresholdForm = () => {
         </FormSection>
 
         <DataSection>
-          {/* Display Selection Section */}
-          <DisplaySelector
-            selectedDisplay={selectedDisplay}
-            displayThresholds={displayThresholds}
-            loading={displayLoading}
-            error={displayError}
-            onDisplayChange={handleDisplayChange}
-            onThresholdsUpdate={setDisplayThresholds}
-            onLoadingChange={setDisplayLoading}
-            onErrorChange={setDisplayError}
-          />
-          
+          {/* Collection Data Table */}
           <CollectionDataTable 
             collectionName={selectedCollection}
             sampleData={sampleData}

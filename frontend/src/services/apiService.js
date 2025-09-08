@@ -736,3 +736,27 @@ export const fetchExcludedFields = async (collectionName, field) => {
     };
   }
 };
+
+/**
+ * Fetches all saved thresholds
+ * @returns {Promise<object>} - API response with all thresholds
+ */
+export const fetchAllThresholds = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/threshold-api/all`);
+    const data = await response.json();
+    
+    return {
+      success: data.success,
+      thresholds: data.thresholds || [],
+      error: data.error || null
+    };
+  } catch (error) {
+    console.error('Error fetching all thresholds:', error);
+    return {
+      success: false,
+      thresholds: [],
+      error: 'Error connecting to server'
+    };
+  }
+};

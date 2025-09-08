@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import {
   DisplaySection,
   SectionHeader,
@@ -12,6 +13,7 @@ import useDisplayOptions from '../../hooks/useDisplayOptions';
 import useConfirmationModal from '../../hooks/useConfirmationModal';
 import useControlledDisplay from '../../hooks/useControlledDisplay';
 import useDisplayManagement from '../../hooks/useDisplayManagement';
+import DisplayService from '../../services/displayService';
 
 // Import modular components
 import DisplayActions from '../forms/DisplayActions';
@@ -30,7 +32,8 @@ const DisplaySelector = ({
   onDisplayChange,
   onThresholdsUpdate,
   onLoadingChange,
-  onErrorChange
+  onErrorChange,
+  refreshTrigger
 }) => {
   // Original hook for uncontrolled mode
   const {
@@ -101,8 +104,45 @@ const DisplaySelector = ({
     handleDragOverControlled,
     handleDragLeaveControlled,
     handleDropControlled,
-    handleDragEndControlled
+    handleDragEndControlled,
+    fetchThresholdsForDisplay
   } = useControlledDisplay();
+
+  // Store callback functions in refs to avoid infinite loops
+  const callbacksRef = useRef({ onThresholdsUpdate, onLoadingChange, onErrorChange });
+  callbacksRef.current = { onThresholdsUpdate, onLoadingChange, onErrorChange };
+
+  // Handle refresh trigger for controlled mode
+  useEffect(() => {
+    if (refreshTrigger > 0 && currentSelectedDisplay) {
+      // Refresh the thresholds for the current display
+      const refreshThresholds = async () => {
+        const { onThresholdsUpdate, onLoadingChange, onErrorChange } = callbacksRef.current;
+        
+        try {
+          onLoadingChange(true);
+          onErrorChange(null);
+          
+          const result = await DisplayService.fetchDisplayConfig(currentSelectedDisplay);
+          
+          if (result.success) {
+            onThresholdsUpdate(result.thresholds);
+          } else {
+            onThresholdsUpdate([]);
+            onErrorChange(result.error || 'No thresholds found for this display');
+          }
+        } catch (err) {
+          console.error('Error fetching display thresholds:', err);
+          onErrorChange(err.message || 'Failed to fetch display thresholds');
+          onThresholdsUpdate([]);
+        } finally {
+          onLoadingChange(false);
+        }
+      };
+      
+      refreshThresholds();
+    }
+  }, [refreshTrigger, currentSelectedDisplay]); // Only depend on refreshTrigger and currentSelectedDisplay
 
   // Debug: Add console.log to see state changes
   console.log('DisplayTime state:', displayTime, 'Type:', typeof displayTime);
@@ -308,7 +348,7 @@ const DisplaySelector = ({
           fontSize: '14px',
           marginBottom: '16px'
         }}>
-          ⚠️ No playlist selected. Threshold saved globally and will affect all playlists using this report.
+          ⚠️ No playlist selected. Please select a playlist to view its configured reports.
         </div>
       )}
 

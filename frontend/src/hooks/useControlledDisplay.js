@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import DisplayService from '../services/displayService';
 
 /**
@@ -22,28 +22,33 @@ export const useControlledDisplay = () => {
       
       // Fetch thresholds for controlled mode
       if (displayName && onThresholdsUpdate && onLoadingChange && onErrorChange) {
-        try {
-          onLoadingChange(true);
-          onErrorChange(null);
-          
-          const result = await DisplayService.fetchDisplayConfig(displayName);
-          
-          if (result.success) {
-            onThresholdsUpdate(result.thresholds);
-          } else {
-            onThresholdsUpdate([]);
-            onErrorChange(result.error || 'No thresholds found for this display');
-          }
-        } catch (err) {
-          console.error('Error fetching display thresholds:', err);
-          onErrorChange(err.message || 'Failed to fetch display thresholds');
-          onThresholdsUpdate([]);
-        } finally {
-          onLoadingChange(false);
-        }
+        await fetchThresholdsForDisplay(displayName, onThresholdsUpdate, onLoadingChange, onErrorChange);
       }
     }
   };
+
+  // Fetch thresholds for a specific display
+  const fetchThresholdsForDisplay = useCallback(async (displayName, onThresholdsUpdate, onLoadingChange, onErrorChange) => {
+    try {
+      onLoadingChange(true);
+      onErrorChange(null);
+      
+      const result = await DisplayService.fetchDisplayConfig(displayName);
+      
+      if (result.success) {
+        onThresholdsUpdate(result.thresholds);
+      } else {
+        onThresholdsUpdate([]);
+        onErrorChange(result.error || 'No thresholds found for this display');
+      }
+    } catch (err) {
+      console.error('Error fetching display thresholds:', err);
+      onErrorChange(err.message || 'Failed to fetch display thresholds');
+      onThresholdsUpdate([]);
+    } finally {
+      onLoadingChange(false);
+    }
+  }, []);
 
   // Handle threshold removal in controlled mode
   const handleThresholdRemoveControlled = async (
@@ -156,7 +161,8 @@ export const useControlledDisplay = () => {
     handleDragOverControlled,
     handleDragLeaveControlled,
     handleDropControlled,
-    handleDragEndControlled
+    handleDragEndControlled,
+    fetchThresholdsForDisplay
   };
 };
 
