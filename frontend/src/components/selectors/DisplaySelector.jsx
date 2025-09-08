@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   DisplaySection,
   SectionHeader,
@@ -63,7 +64,6 @@ const DisplaySelector = ({
 
   // Custom hooks for specific functionality
   const { getFilteredOptions, formatDisplayName } = useDisplayOptions();
-  
   // Display management hook
   const {
     showCreateModal,
@@ -334,49 +334,92 @@ const DisplaySelector = ({
             getFormattedTime={getFormattedTime}
           />
           
-          {currentLoading && <LoadingSpinner />}
+          <AnimatePresence mode="wait">
+            {currentLoading && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.2 }}
+              >
+                <LoadingSpinner />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </HeaderActionsContainer>
       </SectionHeader>
 
-      {!currentSelectedDisplay && (
-        <div style={{
-          padding: '12px 16px',
-          backgroundColor: '#fff3cd',
-          border: '1px solid #ffeaa7',
-          borderRadius: '6px',
-          color: '#856404',
-          fontSize: '14px',
-          marginBottom: '16px'
-        }}>
-          ⚠️ No playlist selected. Please select a playlist to view its configured reports.
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {!currentSelectedDisplay && (
+          <motion.div
+            key="no-selection"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              padding: '12px 16px',
+              backgroundColor: '#fff3cd',
+              border: '1px solid #ffeaa7',
+              borderRadius: '6px',
+              color: '#856404',
+              fontSize: '14px',
+              marginBottom: '16px'
+            }}
+          >
+            ⚠️ No playlist selected. Please select a playlist to view its configured reports.
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {currentError && (
-        <ErrorMessage>
-          <span>⚠️ {currentError}</span>
-          <ErrorCloseButton onClick={handleErrorClear}>
-            ×
-          </ErrorCloseButton>
-        </ErrorMessage>
-      )}
+      <AnimatePresence mode="wait">
+        {currentError && (
+          <motion.div
+            key="error-message"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ErrorMessage>
+              <span>⚠️ {currentError}</span>
+              <ErrorCloseButton onClick={handleErrorClear}>
+                ×
+              </ErrorCloseButton>
+            </ErrorMessage>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <ThresholdsList
-        displayName={currentSelectedDisplay}
-        thresholds={currentDisplayThresholds}
-        loading={currentLoading}
-        error={currentError}
-        reorderLoading={currentReorderLoading}
-        removingThreshold={removingThreshold}
-        draggedItem={currentDraggedItem}
-        dragOverIndex={currentDragOverIndex}
-        onThresholdRemove={handleThresholdRemove}
-        onDragStart={handleDragStartWrapper}
-        onDragOver={handleDragOverWrapper}
-        onDragLeave={handleDragLeaveWrapper}
-        onDrop={handleDropWrapper}
-        onDragEnd={handleDragEndWrapper}
-      />
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentSelectedDisplay || 'empty'}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ 
+            duration: 0.4,
+            ease: "easeInOut"
+          }}
+        >
+          <ThresholdsList
+            displayName={currentSelectedDisplay}
+            thresholds={currentDisplayThresholds}
+            loading={currentLoading}
+            error={currentError}
+            reorderLoading={currentReorderLoading}
+            removingThreshold={removingThreshold}
+            draggedItem={currentDraggedItem}
+            dragOverIndex={currentDragOverIndex}
+            onThresholdRemove={handleThresholdRemove}
+            onDragStart={handleDragStartWrapper}
+            onDragOver={handleDragOverWrapper}
+            onDragLeave={handleDragLeaveWrapper}
+            onDrop={handleDropWrapper}
+            onDragEnd={handleDragEndWrapper}
+          />
+        </motion.div>
+      </AnimatePresence>
 
       {/* Modals */}
       <DeleteThresholdModal

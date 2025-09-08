@@ -19,6 +19,7 @@ const PlaylistConfigPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [hasContent, setHasContent] = useState(false);
 
   const handleDisplayChange = (displayName) => {
     setSelectedDisplay(displayName);
@@ -68,11 +69,24 @@ const PlaylistConfigPage = () => {
           <ActionsBar 
             as={motion.div} 
             variants={buttonHoverVariants}
+            initial={{ 
+              minHeight: '120px',
+              scale: 1
+            }}
+            animate={{ 
+              minHeight: selectedDisplay ? 'auto' : '120px',
+              scale: 1,
+              height: 'auto'
+            }}
+            transition={{ 
+              duration: 0.5, 
+              ease: "easeInOut"
+            }}
             style={{ 
               display: 'flex', 
               justifyContent: 'center', 
               alignItems: 'center',
-              minHeight: '120px'
+              overflow: 'hidden'
             }}
           >
             <div style={{ width: '100%', maxWidth: '800px' }}>

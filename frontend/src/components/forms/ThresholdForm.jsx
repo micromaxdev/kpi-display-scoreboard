@@ -52,7 +52,8 @@ const ThresholdForm = () => {
     refetchCollections,
     fetchAndPopulateThreshold,
     fetchExcludedFieldsForCurrentSelection,
-    autoPopulating // <-- new state from hook
+    autoPopulating, // <-- new state from hook
+    hasDirectionError
   } = useThresholdFormWithData(selectedDisplay); // Pass selectedDisplay to hook
 
   const {
@@ -207,7 +208,7 @@ const ThresholdForm = () => {
     }
   };
 
-  const buttonsEnabled = safeValidation.isValid && 
+  const buttonsEnabled = !hasDirectionError && 
                          !submitting && 
                          formData.selectedCollection && 
                          formData.selectedField;

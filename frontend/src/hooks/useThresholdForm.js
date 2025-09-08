@@ -155,13 +155,20 @@ export const useThresholdForm = (selectedDisplayName = null) => {
       if (saved) {
         const parsedData = JSON.parse(saved);
         console.log('Restored form data from sessionStorage:', parsedData);
+        // Ensure direction always has a default value
+        if (!parsedData.direction) {
+          parsedData.direction = 'higher';
+        }
         return parsedData;
       }
     } catch (error) {
       console.warn('Failed to restore form data from sessionStorage:', error);
     }
     console.log('No saved data found, using initial state');
-    return getInitialFormState();
+    const initialState = getInitialFormState();
+    // Ensure direction is always set to 'higher' by default
+    initialState.direction = 'higher';
+    return initialState;
   };
 
   const [formData, setFormData] = useState(getPersistedFormState());
@@ -280,6 +287,8 @@ export const useThresholdForm = (selectedDisplayName = null) => {
   // Reset form to initial state
   const resetForm = () => {
     const initialState = getInitialFormState();
+    // Ensure direction is always set to 'higher'
+    initialState.direction = 'higher';
     setFormData(initialState);
     setMessage({ type: '', text: '' });
     // Clear sessionStorage when resetting
@@ -399,6 +408,32 @@ export const useThresholdForm = (selectedDisplayName = null) => {
   // Handle save and preview (saves to database then navigates to preview)
   const handleSaveAndPreview = (excludedFields = []) => processForm({ save: true, excludedFields });
 
+  // Function to check if there are direction-related validation errors
+  const hasDirectionError = () => {
+    const { direction, greenThreshold, amberThreshold } = formData;
+    
+    // If direction is not set, that's an error
+    if (!direction) {
+      return true;
+    }
+
+    // If thresholds are set, check logical validation
+    if (greenThreshold && amberThreshold) {
+      const greenValue = parseFloat(greenThreshold);
+      const amberValue = parseFloat(amberThreshold);
+      
+      if (!isNaN(greenValue) && !isNaN(amberValue)) {
+        if (direction === 'higher' && greenValue <= amberValue) {
+          return true; // Direction error: green should be > amber for "higher is better"
+        } else if (direction === 'lower' && greenValue >= amberValue) {
+          return true; // Direction error: green should be < amber for "lower is better"
+        }
+      }
+    }
+    
+    return false;
+  };
+
   return {
     formData,
     message,
@@ -412,7 +447,8 @@ export const useThresholdForm = (selectedDisplayName = null) => {
     handleSaveAndPreview,
     fetchAndPopulateThreshold,
     fetchExcludedFieldsForCurrentSelection,
-    validation: validateThresholdForm(formData)
+    validation: validateThresholdForm(formData),
+    hasDirectionError: hasDirectionError()
   };
 };
 

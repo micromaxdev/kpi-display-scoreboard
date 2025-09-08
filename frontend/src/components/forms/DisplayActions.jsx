@@ -21,7 +21,7 @@ const DisplayActions = ({
         disabled={loading}
         style={{ marginRight: '12px' }}
       >
-        <option value="">Select a playlist...</option>
+        <option value="" disabled>Select a playlist...</option>
         {displayOptions.map(option => (
           <option key={option.displayName} value={option.displayName}>
             {formatDisplayName(option.displayName)}

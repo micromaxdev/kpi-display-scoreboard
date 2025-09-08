@@ -4,10 +4,6 @@ import { fetchAllThresholds, saveDisplayConfig } from '../../services/apiService
 import {
   ThresholdsContainer,
   ThresholdsHeader,
-  ThresholdsGrid,
-  ThresholdTab,
-  CollectionName,
-  FieldName,
   EmptyState,
   ErrorMessage,
   LoadingSpinner
@@ -98,11 +94,14 @@ const SavedThresholdsList = ({ selectedDisplay, onThresholdAssigned }) => {
 
       if (response.success) {
         setAssignSuccess(`✅ Threshold "${selectedThreshold.collectionName} - ${selectedThreshold.field}" successfully assigned to "${selectedDisplay}"`);
-        setSelectedThreshold(null);
+        // Delay clearing the selected threshold to allow for smooth animation
+        setTimeout(() => {
+          setSelectedThreshold(null);
+        }, 500);
         // Clear success message after 3 seconds
         setTimeout(() => {
           setAssignSuccess(null);
-        }, 3000);
+        }, 2000);
         if (onThresholdAssigned) {
           onThresholdAssigned();
         }
@@ -242,13 +241,10 @@ const SavedThresholdsList = ({ selectedDisplay, onThresholdAssigned }) => {
               <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
               transition={{ 
-                duration: 0.4, 
-                ease: "easeOut",
-                type: "spring",
-                stiffness: 100,
-                damping: 15
+                duration: 0.7, 
+                ease: "easeInOut"
               }}
               style={{
                 background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
