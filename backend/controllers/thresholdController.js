@@ -26,12 +26,12 @@ export async function getThreshold(req, res) {
 
 // Create or update a threshold
 export async function setThreshold(req, res) {
-    const { collectionName, field, green, amber, direction } = req.body;
+    const { collectionName, field, green, amber, direction, excludedFields } = req.body;
     if (!collectionName || !field || green == null || amber == null || !direction) {
         console.error('Missing required fields for threshold:', { collectionName, field, green, amber, direction });
         return res.status(400).json({ success: false, message: 'All fields are required' });
     }
-    const updated = await thresholdService.setThreshold({ collectionName, field, green, amber, direction });
+    const updated = await thresholdService.setThreshold({ collectionName, field, green, amber, direction, excludedFields });
     res.json({ success: true, threshold: updated });
 }
 
@@ -47,60 +47,19 @@ export async function getThresholdById(req, res) {
     res.json({ success: true, threshold });
 }
 
-// Update threshold excluded fields
-export async function updateThresholdExcludedFields(req, res) {
-    try {
-        const { thresholdId } = req.params;
-        const { excludedFields } = req.body;
-
-        if (!thresholdId) {
-            return res.status(400).json({
-                success: false,
-                message: 'Threshold ID is required'
-            });
-        }
-
-        const result = await thresholdService.updateThresholdExcludedFields(
-            thresholdId, 
-            excludedFields
-        );
-
-        if (!result.success) {
-            return res.status(result.status || 500).json({
-                success: false,
-                message: result.message
-            });
-        }
-
-        res.json({
-            success: true,
-            message: 'Excluded fields updated successfully',
-            data: result.data
-        });
-
-    } catch (error) {
-        console.error('Error updating threshold excluded fields:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error updating excluded fields',
-            error: error.message
-        });
-    }
-}
-
 // Get threshold excluded fields
 export async function getThresholdExcludedFields(req, res) {
     try {
-        const { thresholdId } = req.params;
+        const {collectionName, field} = req.query;
 
-        if (!thresholdId) {
+        if (!collectionName || !field) {
             return res.status(400).json({
                 success: false,
-                message: 'Threshold ID is required'
+                message: 'Collection name and field are required'
             });
         }
 
-        const result = await thresholdService.getThresholdExcludedFields(thresholdId);
+        const result = await thresholdService.getThresholdExcludedFields(collectionName, field);
 
         if (!result.success) {
             return res.status(result.status || 500).json({
@@ -108,7 +67,6 @@ export async function getThresholdExcludedFields(req, res) {
                 message: result.message
             });
         }
-
         res.json({
             success: true,
             data: result.data
@@ -119,42 +77,6 @@ export async function getThresholdExcludedFields(req, res) {
         res.status(500).json({
             success: false,
             message: 'Error fetching excluded fields',
-            error: error.message
-        });
-    }
-}
-
-// Get available fields for a collection (helper endpoint)
-export async function getCollectionFields(req, res) {
-    try {
-        const { collectionName } = req.query;
-        
-        if (!collectionName) {
-            return res.status(400).json({
-                success: false,
-                message: 'Collection name is required'
-            });
-        }
-
-        const result = await thresholdService.getCollectionFields(collectionName);
-
-        if (!result.success) {
-            return res.status(result.status || 500).json({
-                success: false,
-                message: result.message
-            });
-        }
-
-        res.json({
-            success: true,
-            data: result.data
-        });
-
-    } catch (error) {
-        console.error('Error fetching collection fields:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error fetching collection fields',
             error: error.message
         });
     }

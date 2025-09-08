@@ -1,5 +1,4 @@
 import Threshold from '../models/thresholdModel.js';
-import { getCollectionFields as getDataCollectionFields } from '../services/dataService.js';
 
 export async function getThresholdsByCollection(collectionName) {
     return Threshold.find({ collectionName }, '-__v');
@@ -13,75 +12,32 @@ export async function getThresholdById(id) {
     return Threshold.findById(id, '-__v');
 }
 
-export async function setThreshold({ collectionName, field, green, amber, direction }) {
+export async function setThreshold({ collectionName, field, green, amber, direction, excludedFields }) {
+    // If excludedFields is explicitly provided (even as undefined), it will overwrite the field.
+    // If excludedFields is not provided, it will remain unchanged.
+    const update = { green, amber, direction };
+    if (excludedFields !== undefined) {
+        update.excludedFields = excludedFields || [];
+    }
     return Threshold.findOneAndUpdate(
         { collectionName, field },
-        { green, amber, direction },
+        update,
         { upsert: true, new: true }
     );
 }
 
-// Update excluded fields for a threshold
-export async function updateThresholdExcludedFields(thresholdId, excludedFields) {
-    try {
-        if (!thresholdId) {
-            return {
-                success: false,
-                status: 400,
-                message: 'Threshold ID is required'
-            };
-        }
-
-        // Only update existing thresholds - no upsert
-        const threshold = await Threshold.findByIdAndUpdate(
-            thresholdId,
-            { 
-                $set: { 
-                    excludedFields: excludedFields || []
-                }
-            },
-            { 
-                new: true,     // Return the updated document
-                runValidators: true  // Run schema validation
-            }
-        );
-
-        if (!threshold) {
-            return {
-                success: false,
-                status: 404,
-                message: 'Threshold not found. Please create the threshold first.'
-            };
-        }
-
-        return {
-            success: true,
-            data: {
-                thresholdId: threshold._id,
-                excludedFields: threshold.excludedFields || []
-            }
-        };
-    } catch (error) {
-        return {
-            success: false,
-            status: 500,
-            message: `Error updating excluded fields: ${error.message}`
-        };
-    }
-}
-
 // Get excluded fields for a threshold
-export async function getThresholdExcludedFields(thresholdId) {
+export async function getThresholdExcludedFields(collectionName, field) {
     try {
-        if (!thresholdId) {
+        if (!collectionName || !field) {
             return {
                 success: false,
                 status: 400,
-                message: 'Threshold ID is required'
+                message: 'Collection name and field are required'
             };
         }
 
-        const threshold = await Threshold.findById(thresholdId)
+        const threshold = await Threshold.findOne({ collectionName, field })
             .select('excludedFields')
             .lean();
 
