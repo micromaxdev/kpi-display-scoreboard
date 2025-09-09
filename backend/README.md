@@ -1,6 +1,6 @@
 # KPI Display Scoreboard - Backend API
 
-A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB collection access with advanced querying, pagination, and filtering capabilities. Built specifically for KPI dashboards and data visualization applications with comprehensive threshold management and display configuration features.
+A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB collection access with advanced querying, pagination, and filtering capabilities. Built specifically for KPI dashboards and data visualization applications with comprehensive threshold management, display configuration, screen management, and file upload features.
 
 ## 🚀 Features
 
@@ -12,6 +12,8 @@ A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB co
 - **📈 KPI Analysis**: Built-in RAG (Red-Amber-Green) categorization for KPI tracking
 - **⚙️ Threshold Management**: Dynamic threshold configuration and monitoring
 - **🖥️ Display Configuration**: Customizable display settings and layouts
+- **📺 Screen Management**: Multi-screen configuration and routing support
+- **📁 File Upload & Processing**: Excel/CSV file upload with data cleaning and validation
 - **⚡ Performance Optimized**: Lean queries, model caching, and efficient indexing
 - **🛠️ RESTful Design**: Clean, intuitive API endpoints
 - **🔒 Error Handling**: Comprehensive error handling and validation
@@ -23,6 +25,7 @@ A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB co
 - [API Endpoints](#api-endpoints)
 - [Advanced Filtering](#advanced-filtering)
 - [Date Handling](#date-handling)
+- [File Upload](#file-upload)
 - [Response Formats](#response-formats)
 - [Architecture](#architecture)
 - [Development](#development)
@@ -32,7 +35,7 @@ A powerful and flexible Node.js/Express REST API designed for dynamic MongoDB co
 
 ### Prerequisites
 
-- **Node.js** v16 or higher
+- **Node.js** v18 or higher
 - **MongoDB** 4.4 or higher
 - **Yarn** package manager v4.9.2+
 
@@ -123,6 +126,25 @@ GET /display-api/displays
 POST /display-api/displays
 PUT /display-api/displays/:id
 DELETE /display-api/displays/:id
+```
+
+### 📺 Screen Management
+
+#### 7. Screen Operations
+```http
+GET /screen-api/screens
+POST /screen-api/screens
+GET /screen-api/:screenName
+PUT /screen-api/:screenName
+DELETE /screen-api/:screenName
+```
+
+### 📁 File Upload Operations
+
+#### 8. File Upload Operations
+```http
+POST /file-api/upload/:collectionName
+POST /file-api/preview
 ```
 
 #### 1. Get Paginated Collection Data
@@ -380,6 +402,83 @@ GET /api/find/orders?orderDate={"$regex":"^[0-9]{2}/08/24$"}&status=completed
 GET /api/find/metrics?reportDate={"$regex":"^[0-9]{2}/(06|07|08)/24$"}
 ```
 
+## 📁 File Upload
+
+The API supports file upload and processing capabilities for importing data into MongoDB collections.
+
+### Supported File Formats
+
+- **CSV Files** (`.csv`)
+- **Excel Files** (`.xlsx`, `.xls`)
+
+### Upload to Collection
+
+```http
+POST /file-api/upload/:collectionName
+Content-Type: multipart/form-data
+
+Form Data:
+- file: [Excel/CSV file]
+```
+
+**Example**:
+```bash
+curl -X POST \
+  http://localhost:5000/file-api/upload/products \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'file=@products.xlsx'
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "message": "File uploaded and processed successfully",
+  "result": {
+    "totalRows": 150,
+    "insertedCount": 145,
+    "errors": 5,
+    "collectionName": "products"
+  }
+}
+```
+
+### File Preview (without uploading)
+
+```http
+POST /file-api/preview
+Content-Type: multipart/form-data
+
+Form Data:
+- file: [Excel/CSV file]
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "preview": [
+    {
+      "name": "Product A",
+      "price": 29.99,
+      "category": "Electronics",
+      "createdAt": "09/08/24"
+    }
+  ],
+  "totalRows": 150,
+  "columns": ["name", "price", "category", "createdAt"]
+}
+```
+
+### Data Processing Features
+
+- **🧹 Data Cleaning**: Automatic removal of empty rows and string trimming
+- **🔢 Type Conversion**: Automatic number conversion where appropriate
+- **📅 Date Formatting**: Standardized date formatting to dd/mm/yy format
+- **✅ Validation**: File type and size validation
+- **🗂️ Metadata Addition**: Automatic addition of upload timestamps and metadata
+- **⚠️ Error Handling**: Detailed error reporting for invalid data rows
+
 ## 📋 Response Formats
 
 ### Success Response Structure
@@ -425,41 +524,44 @@ GET /api/find/metrics?reportDate={"$regex":"^[0-9]{2}/(06|07|08)/24$"}
 ```
 backend/
 ├── 📁 config/
-│   ├── db.js                    # MongoDB connection setup
-│   └── join.js                  # Aggregation pipeline utilities
+│   └── db.js                    # MongoDB connection setup
 ├── 📁 controllers/
 │   ├── displayController.js     # Display configuration handlers
 │   ├── dynamicModelController.js # Dynamic collection API handlers
+│   ├── fileUploadController.js  # File upload and processing handlers
 │   ├── kpiController.js         # KPI analysis handlers
+│   ├── screenController.js      # Screen management handlers
 │   └── thresholdController.js   # Threshold management handlers
 ├── 📁 middleware/
-│   ├── authMiddleware.js        # Authentication middleware
-│   └── errorMiddleware.js       # Global error handling
+│   ├── errorMiddleware.js       # Global error handling middleware
+│   └── uploadMiddleware.js      # File upload middleware (Multer)
 ├── 📁 models/
-│   ├── displayModel.js          # Display configuration model
+│   ├── displayModel.js          # Display configuration schema
 │   ├── dynamicModel.js          # Dynamic Mongoose model generator
-│   └── thresholdModel.js        # Threshold configuration model
+│   ├── screenModel.js           # Screen configuration schema
+│   └── thresholdModel.js        # Threshold configuration schema
 ├── 📁 routes/
 │   ├── displayRoutes.js         # Display API routes
 │   ├── dynamicModelRoutes.js    # Dynamic collection API routes
+│   ├── fileUploadRoutes.js      # File upload API routes
 │   ├── kpiRoutes.js             # KPI analysis routes
+│   ├── screenRoutes.js          # Screen management routes
 │   └── thresholdRoutes.js       # Threshold management routes
 ├── 📁 services/
-│   ├── dataService.js           # Core data operations
+│   ├── dataService.js           # Core data operations and file upload
 │   ├── displayService.js        # Display business logic
 │   ├── kpiService.js            # KPI analysis business logic
 │   ├── queryService.js          # Query building utilities
+│   ├── screenService.js         # Screen management business logic
 │   └── thresholdService.js      # Threshold business logic
+├── 📁 uploads/
+│   └── temp/                    # Temporary file storage for uploads
 ├── 📁 utils/
 │   ├── dateUtils.js             # Date formatting and utilities
+│   ├── excelUtils.js            # Excel file processing utilities
+│   ├── fileUploadUtils.js       # File upload processing utilities
 │   ├── kpiUtils.js              # KPI calculation utilities
 │   └── ragCategoryUtils.js      # RAG categorization utilities
-├── 📄 server.js                 # Application entry point
-├── 📄 package.json              # Dependencies and scripts
-└── 📄 .env                      # Environment configuration
-```
-│   ├── queryService.js          # Query building utilities  
-│   └── dateService.js           # Date formatting and normalization
 ├── 📄 server.js                 # Application entry point
 ├── 📄 package.json              # Dependencies and scripts
 └── 📄 .env                      # Environment configuration
@@ -468,11 +570,12 @@ backend/
 ### Service Layer Architecture
 
 #### DataService (`dataService.js`)
-- **Primary Functions**: CRUD operations, pagination, aggregation
+- **Primary Functions**: CRUD operations, pagination, aggregation, file upload processing
 - **Key Methods**: 
   - `getPaginatedDataFromCollection()`
   - `getCollectionFields()`
   - `getCountFromCollection()`
+  - `uploadDataToCollection()`
 
 #### QueryService (`queryService.js`) 
 - **Primary Functions**: Query building, parameter extraction, pagination metadata
@@ -498,6 +601,19 @@ backend/
 
 #### DisplayService (`displayService.js`)
 - **Primary Functions**: Display configuration management, layout settings
+- **Key Methods**:
+  - `createDisplay()` - Creates new display configurations
+  - `updateDisplay()` - Updates display settings
+  - `getDisplayConfig()` - Retrieves display configurations
+
+#### ScreenService (`screenService.js`)
+- **Primary Functions**: Screen management, screen configuration, routing
+- **Key Methods**:
+  - `createScreen()` - Creates new screen configurations
+  - `updateScreen()` - Updates screen settings
+  - `getScreenByName()` - Retrieves screen configuration by name
+  - `getAllScreens()` - Gets all available screens
+  - `deleteScreen()` - Removes screen configurations
 - **Key Methods**:
   - `createDisplay()` - Creates new display configurations
   - `updateDisplay()` - Updates display settings
@@ -612,6 +728,7 @@ GET /
 - **nodemailer** ^6.9.7 - Email sending capabilities
 - **mongodb** ^6.3.0 - Native MongoDB driver
 - **exceljs** ^4.4.0 - Excel file generation and parsing
+- **multer** ^2.0.2 - File upload handling middleware
 
 ### Development Dependencies
 
